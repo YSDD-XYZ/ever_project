@@ -76,12 +76,18 @@ jobs:
         run: |
           for url in \
             http://localhost:18000/ http://localhost:18000/index.html \
+            http://localhost:18000/vendor/three.module.min.js \
+            http://localhost:18000/vendor/OrbitControls.js \
+            http://localhost:18000/vendor/Reflector.js \
             http://localhost:18000/src/main.js http://localhost:18000/src/ui.js \
             http://localhost:18000/src/state.js http://localhost:18000/src/util.js \
             http://localhost:18000/src/data.js http://localhost:18000/src/audio.js \
             http://localhost:18000/src/game.js http://localhost:18000/src/scene.js \
             http://localhost:18001/ http://localhost:18001/index.html \
-            http://localhost:18001/sw.js http://localhost:18001/manifest.webmanifest \
+            http://localhost:18001/vendor/three.module.min.js \
+            http://localhost:18001/vendor/OrbitControls.js \
+            http://localhost:18001/vendor/Reflector.js \
+            http://localhost:18001/manifest.webmanifest \
             http://localhost:18001/icon.svg \
             http://localhost:18001/src/main.js http://localhost:18001/src/ui.js \
             http://localhost:18001/src/state.js http://localhost:18001/src/util.js \
