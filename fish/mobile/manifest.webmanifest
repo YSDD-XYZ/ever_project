@@ -1,0 +1,19 @@
+{
+  "name": "湖畔垂钓",
+  "short_name": "垂钓",
+  "description": "3D 钓鱼小游戏，触屏优化，可离线玩",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#0b1a2b",
+  "theme_color": "#0b1a2b",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

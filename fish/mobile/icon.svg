@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a3a66"/>
+      <stop offset="1" stop-color="#0b1a2b"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1f5b86"/>
+      <stop offset="1" stop-color="#0e3252"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="48" fill="url(#bg)"/>
+  <!-- 月亮 -->
+  <circle cx="200" cy="60" r="22" fill="#fff2cf" opacity="0.95"/>
+  <circle cx="200" cy="60" r="36" fill="#fff2cf" opacity="0.18"/>
+  <!-- 远山 -->
+  <path d="M0 160 L40 110 L80 145 L130 90 L180 140 L230 105 L256 145 L256 200 L0 200 Z" fill="#1a3454" opacity="0.7"/>
+  <!-- 水面 -->
+  <path d="M0 200 L256 200 L256 256 L0 256 Z" fill="url(#water)"/>
+  <!-- 鱼竿 -->
+  <line x1="50" y1="240" x2="170" y2="90" stroke="#caa477" stroke-width="6" stroke-linecap="round"/>
+  <line x1="170" y1="90" x2="190" y2="70" stroke="#caa477" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="50" cy="240" r="10" fill="#caa477"/>
+  <!-- 鱼线 -->
+  <line x1="190" y1="70" x2="220" y2="170" stroke="#ffffff" stroke-width="1.5" opacity="0.7"/>
+  <!-- 浮漂 -->
+  <ellipse cx="220" cy="170" rx="9" ry="13" fill="#ff5b5b"/>
+  <rect x="216" y="167" width="8" height="10" fill="#fff"/>
+  <!-- 涟漪 -->
+  <ellipse cx="220" cy="172" rx="20" ry="6" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.5"/>
+  <ellipse cx="220" cy="172" rx="32" ry="9" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.3"/>
+</svg>
