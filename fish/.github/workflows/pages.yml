@@ -1,9 +1,13 @@
 name: Deploy to GitHub Pages
 
+# 仅在 lint-sync workflow 跑过之后再部署（避免推坏版本上线）
 on:
   push:
     branches: [main]
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Lint & Sync"]
+    types: [completed]
 
 permissions:
   contents: read
@@ -16,6 +20,8 @@ concurrency:
 
 jobs:
   deploy:
+    # 必须 lint-sync 跑过
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
     name: Deploy web/ to GitHub Pages
     runs-on: ubuntu-latest
     environment:

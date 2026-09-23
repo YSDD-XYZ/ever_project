@@ -597,6 +597,49 @@
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* ---------- Loading 屏 ---------- */
+  .loading {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+    transition: opacity .4s ease-out;
+  }
+  .loading.hide { opacity: 0; pointer-events: none; }
+  .loading-inner { text-align: center; }
+  .loading-fish {
+    font-size: 56px;
+    animation: bobUp 1.6s ease-in-out infinite;
+    filter: drop-shadow(0 4px 12px rgba(91,227,194,.4));
+  }
+  @keyframes bobUp {
+    0%,100% { transform: translateY(0); }
+    50%     { transform: translateY(-12px); }
+  }
+  .loading-text {
+    margin-top: 14px;
+    color: var(--text-2);
+    font-size: var(--fs-md);
+    letter-spacing: 2px;
+  }
+  .loading-bar {
+    margin: 12px auto 0;
+    width: 200px; height: 3px;
+    background: rgba(255,255,255,.1);
+    border-radius: var(--r-pill);
+    overflow: hidden;
+    position: relative;
+  }
+  .loading-bar::before {
+    content: ""; position: absolute; left: -40%; top: 0; bottom: 0;
+    width: 40%;
+    background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    animation: loadingSweep 1.4s ease-in-out infinite;
+  }
+  @keyframes loadingSweep {
+    from { left: -40%; } to { left: 100%; }
+  }
+
   /* ---------- 中央提示条 ---------- */
   .hint {
     position: absolute; left: 50%; top: 16px;
@@ -733,6 +776,15 @@
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <!-- Loading 屏：在 scene 渲染就绪前显示 -->
+  <div class="loading" id="loading">
+    <div class="loading-inner">
+      <div class="loading-fish">🐟</div>
+      <div class="loading-text">湖畔垂钓 · 加载中</div>
+      <div class="loading-bar"></div>
+    </div>
+  </div>
 
 
 </body>

@@ -51,6 +51,13 @@ renderAll();
 pushLog('欢迎来到湖畔垂钓 🎣', 'tip');
 save();
 
+// 隐藏 loading 屏（DOM 完全就绪）
+const _loadingEl = document.getElementById('loading');
+if (_loadingEl){
+  _loadingEl.classList.add('hide');
+  setTimeout(() => _loadingEl.remove(), 500);
+}
+
 // 监听 game.js 发出的状态变化事件，统一刷新 HUD
 window.addEventListener('game:state-changed', () => {
   renderHUD();
