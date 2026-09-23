@@ -1,0 +1,38 @@
+# 编辑器 / IDE 残留
+.vscode/
+.idea/
+*.swp
+*.swo
+*.iml
+*~
+.DS_Store
+Thumbs.db
+
+# Node（如果以后加构建工具）
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 构建产物（如果以后加 vite/webpack）
+dist/
+build/
+.cache/
+
+# 日志
+*.log
+
+# 临时
+tmp/
+.tmp/
+
+# 本地跑服务器产生
+*.pid
+.DS_Store

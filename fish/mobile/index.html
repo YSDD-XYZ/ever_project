@@ -2,9 +2,9 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#0b1a2b" media="(prefers-color-scheme: dark)" />
 <title>湖畔垂钓 · 触屏版</title>
-<meta name="theme-color" content="#0b1a2b" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -376,14 +376,58 @@
   @media (max-width: 480px) {
     .hud .right .chip:not(.toggle-stat) { display: none; }
     .hud .right .toggle-stat { display: inline-flex !important; }   /* 由 JS 在 <420 才显示 */
-    .controls { grid-template-columns: 1fr; }
-    .bait-grid { grid-template-columns: repeat(3, 1fr); }
-    .big-cast { width: 100%; padding: 16px 0; font-size: 18px; }
+    .controls {
+      grid-template-columns: 1fr;
+      padding: 10px 14px 88px;          /* 底部留 88px 给 FAB */
+      gap: 6px;
+    }
+    .col h5 { margin-bottom: 6px; font-size: 10px; }
+    .bait-grid { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .bait { padding: 6px 2px; }
+    .bait .emoji { font-size: 18px; }
+    .bait .nm { font-size: 10px; }
+    .bait .cnt { font-size: 9px; }
+    .action-grid {
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+    }
+    .cast-power small { display: none; }
+    /* 原 .controls 里的抛杆按钮在 mobile 上被 fixed FAB 替代，隐藏避免重复 */
+    .controls .big-cast { display: none; }
+    .big-cast {
+      /* FAB 化：固定在右下角 */
+      position: fixed;
+      bottom: 14px;
+      right: 14px;
+      z-index: 30;
+      width: 64px; height: 64px;
+      padding: 0;
+      border-radius: 50%;
+      font-size: 28px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 24px rgba(255,140,80,.5), 0 0 0 4px rgba(255,140,80,.15);
+      animation: fabPulse 2.4s ease-in-out infinite;
+    }
+    @keyframes fabPulse {
+      0%, 100% { box-shadow: 0 8px 24px rgba(255,140,80,.5), 0 0 0 4px rgba(255,140,80,.15); }
+      50%      { box-shadow: 0 8px 24px rgba(255,140,80,.5), 0 0 0 10px rgba(255,140,80,.05); }
+    }
+    .big-cast:hover { transform: translateY(-3px) scale(1.05); }
+    /* 收线按钮：与 FAB 配套浮起 */
+    #reel {
+      position: fixed;
+      bottom: 22px;
+      right: 90px;
+      z-index: 30;
+      padding: 12px 18px;
+      border-radius: 999px;
+      box-shadow: 0 6px 16px rgba(0,0,0,.4);
+    }
     .modal { width: 96vw; max-height: 92vh; }
   }
   /* 极小屏（折叠副屏） */
   @media (max-width: 360px) {
-    .bait-grid { grid-template-columns: repeat(2, 1fr); }
+    .bait-grid { grid-template-columns: repeat(3, 1fr); }
     .bait .nm { font-size: 11px; }
   }
 </style>

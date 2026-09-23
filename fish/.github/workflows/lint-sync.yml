@@ -1,0 +1,101 @@
+name: Lint & Sync
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Validate shared / web / mobile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Make sync-shared.sh executable
+        run: chmod +x scripts/sync-shared.sh
+
+      # 1) 跑 sync-shared.sh：检查 shared → web/src + mobile/src 与本地是否一致
+      - name: Sync shared → web/mobile (must be no-op)
+        run: bash scripts/sync-shared.sh
+
+      - name: Fail if working tree changed after sync
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::working tree changed after sync-shared.sh — shared/ 里的修改没同步到 web/src 与 mobile/src"
+            git status --porcelain
+            exit 1
+          fi
+
+      # 2) Node 语法检查：每个 JS 文件单独跑 --check
+      # 注：--check 不能直接处理 ESM 的 import/export，这里用 function wrapper 模拟
+      - name: Syntax-check all JS files
+        run: |
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          const files = [
+            'shared/state.js','shared/util.js','shared/data.js',
+            'shared/audio.js','shared/game.js','shared/scene.js',
+            'web/src/main.js','web/src/ui.js',
+            'mobile/src/main.js','mobile/src/ui.js',
+          ];
+          let ok = true;
+          for (const f of files) {
+            const src = fs.readFileSync(f,'utf8');
+            // 去掉 import / export 行，多行形式用 [\s\S]*?
+            const stripped = src
+              .replace(/^import[\s\S]*?from\s*['\"][^'\"]+['\"];?\s*$/gm, '')
+              .replace(/^export\s*\{[\s\S]*?\};?\s*$/gm, '');
+            try {
+              new Function('return (async()=>{' + stripped + '})')();
+              console.log('  ok', f);
+            } catch (e) {
+              console.error('FAIL', f, e.message);
+              ok = false;
+            }
+          }
+          if (!ok) process.exit(1);
+          "
+
+      # 3) 基础静态资源可达性：起两个端口 18000/18001，curl 检查所有路径
+      - name: Start static servers
+        run: |
+          python3 -m http.server 18000 --directory web >/tmp/web.log 2>&1 &
+          python3 -m http.server 18001 --directory mobile >/tmp/mobile.log 2>&1 &
+          sleep 1
+        shell: bash
+
+      - name: Probe endpoints
+        run: |
+          for url in \
+            http://localhost:18000/ http://localhost:18000/index.html \
+            http://localhost:18000/src/main.js http://localhost:18000/src/ui.js \
+            http://localhost:18000/src/state.js http://localhost:18000/src/util.js \
+            http://localhost:18000/src/data.js http://localhost:18000/src/audio.js \
+            http://localhost:18000/src/game.js http://localhost:18000/src/scene.js \
+            http://localhost:18001/ http://localhost:18001/index.html \
+            http://localhost:18001/sw.js http://localhost:18001/manifest.webmanifest \
+            http://localhost:18001/icon.svg \
+            http://localhost:18001/src/main.js http://localhost:18001/src/ui.js \
+            http://localhost:18001/src/state.js http://localhost:18001/src/util.js \
+            http://localhost:18001/src/data.js http://localhost:18001/src/audio.js \
+            http://localhost:18001/src/game.js http://localhost:18001/src/scene.js; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$url")
+            if [ "$code" != "200" ] && [ "$code" != "301" ]; then
+              echo "FAIL $code $url"
+              exit 1
+            fi
+          done
+          echo "all endpoints reachable"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          pkill -f "http.server 1800" 2>/dev/null || true
