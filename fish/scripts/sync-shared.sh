@@ -19,4 +19,15 @@ for target in "$ROOT/web/src" "$ROOT/mobile/src"; do
   done
 done
 
-echo "✓ shared/ → web/src + mobile/src/"
+# vendor：three.js / OrbitControls 等本地依赖（避免 CDN 不可用）
+for target in "$ROOT/web" "$ROOT/mobile"; do
+  mkdir -p "$target/vendor"
+  for vendor in "$SHARED/vendor"/*.js; do
+    [ -f "$vendor" ] || continue
+    name="$(basename "$vendor")"
+    cp "$vendor" "$target/vendor/$name"
+    echo "vendored $target/vendor/$name"
+  done
+done
+
+echo "✓ shared/ → web/src + mobile/src/ + vendor/"

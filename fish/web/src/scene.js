@@ -1,3 +1,16 @@
+// scene.js —— Three.js 3D 场景（依赖全局 THREE，由 importmap + ESM 注入）
+// 顶部 import * as THREE 既保证拿到 THREE 单例（用命名空间访问），也把它挂到 window，
+// 方便模块内大量 `new THREE.Xxx(...)` 调用保持原写法。
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/OrbitControls.js';
+import { Reflector } from 'three/addons/Reflector.js';
+// 把 addons 挂到 THREE 上，保留 `new THREE.Reflector / new OrbitControls` 等原有写法
+THREE.OrbitControls = OrbitControls;
+THREE.Reflector = Reflector;
+window.THREE = THREE;
+window.OrbitControls = OrbitControls;
+window.Reflector = Reflector;
+
 const scene = (() => {
   /* ---------- 程序化纹理工厂 ---------- */
   // 不依赖外部文件，在 <canvas> 上画 normal / roughness / wood 等贴图
@@ -83,7 +96,7 @@ const scene = (() => {
 
   /* ---------- OrbitControls ---------- */
   // 拖拽旋转、滚轮缩放、触摸 pinch 缩放与单指旋转全部由它处理
-  const controls = new THREE.OrbitControls(camera, canvas);
+  const controls = new OrbitControls(camera, canvas);
   controls.target.set(0, 0.5, 0);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
@@ -124,7 +137,7 @@ const scene = (() => {
 
   /* ---------- 水面（Reflector + 波纹叠层） ---------- */
   // 镜面倒影：实时渲染场景镜像
-  const reflector = new THREE.Reflector ? new THREE.Reflector(new THREE.PlaneGeometry(120, 60), {
+  const reflector = new Reflector(new THREE.PlaneGeometry(120, 60), {
     clipBias: 0.003,
     textureWidth: window.innerWidth * Math.min(window.devicePixelRatio, 2),
     textureHeight: window.innerHeight * Math.min(window.devicePixelRatio, 2),

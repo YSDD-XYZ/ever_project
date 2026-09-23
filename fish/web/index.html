@@ -4,8 +4,16 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>湖畔垂钓 · 轻松钓鱼</title>
-<script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
-<script src="https://unpkg.com/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
+<!-- importmap：把 three 映射到本地 vendor。避免 CDN 不可用 / CORS 问题 -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three.module.min.js",
+    "three/addons/": "./vendor/"
+  }
+}
+</script>
+<script type="module" src="./src/main.js"></script>
 <style>
   /* ==========================================================
         设计系统（Design Tokens）
@@ -726,6 +734,5 @@
   <div class="toast" id="toast"></div>
 
 
-<script type="module" src="./src/main.js"></script>
 </body>
 </html>
