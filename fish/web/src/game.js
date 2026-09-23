@@ -1,7 +1,7 @@
 // game.js —— 玩法核心（cast / reel / capture / tickFish / 杂项 / 天气）
 import { state, save } from './state.js';
 import { $, el, rand, randInt, choice, clamp, toast } from './util.js';
-import { FISH, BAITS, PLACES, WEATHERS, ACHIEVEMENTS, SHOP } from './data.js';
+import { FISH, BAITS, PLACES, WEATHERS, ACHIEVEMENTS, SHOP, TIMES } from './data.js';
 import { audio } from './audio.js';
 import { scene } from './scene.js';
 
