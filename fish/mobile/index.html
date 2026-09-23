@@ -420,6 +420,31 @@
       50%      { box-shadow: 0 8px 24px rgba(255,140,80,.5), 0 0 0 10px rgba(255,140,80,.05); }
     }
     .big-cast:hover { transform: translateY(-3px) scale(1.05); }
+    /* 禁用态：冷却中（鱼试探 / 等待收线） */
+    .big-cast:disabled {
+      animation: fabCooldown 1.4s linear infinite;
+      filter: none;
+      opacity: 1;
+      background: linear-gradient(135deg, #4a4338, #5a4a3a);
+      color: rgba(255, 210, 138, .55);
+      box-shadow: 0 4px 12px rgba(0,0,0,.4);
+    }
+    @keyframes fabCooldown {
+      0%   { box-shadow: 0 0 0 0   rgba(255, 210, 138, .35) inset; }
+      100% { box-shadow: 0 0 0 50px rgba(255, 210, 138,  0)  inset; }
+    }
+    .big-cast:disabled::after {
+      content: "⏳";
+      position: absolute;
+      font-size: 12px;
+      bottom: -16px; left: 50%;
+      transform: translateX(-50%);
+      opacity: .7;
+      animation: spin 2s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: translateX(-50%) rotate(360deg); }
+    }
     /* 收线按钮：与 FAB 配套浮起 */
     #reel {
       position: fixed;
