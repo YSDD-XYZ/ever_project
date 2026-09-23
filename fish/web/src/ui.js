@@ -1,7 +1,7 @@
 // ui.js —— DOM 渲染：HUD / 地点 / 鱼饵 / 模态框（图鉴/商店/成就/日志/帮助/捕获）
 import { state } from './state.js';
 import { $ } from './util.js';
-import { FISH, SHOP } from './data.js';
+import { FISH, BAITS, SHOP } from './data.js';
 
 function renderHUD(){
   $('hud-money').textContent = state.money;
@@ -196,13 +196,14 @@ function showCatchModal(f, weight, gain){
       el('div', { class:'big-fish' }, f.emj),
       el('div', {},
         el('h3', {}, `${f.name} · ${weight.toFixed(2)}kg`),
-        el('div', { style:'opacity:.7;font-size:13px;' }, `稀有度：${f.rarity} · 价值 +${gain}💰`),
+        el('div', { class:'rarity' }, f.rarity),
         el('div', { class:'flavor' }, f.flavor),
         el('div', { class:'stats' },
           el('div',{}, el('span',{},'体型区间'), el('b',{}, `${f.minKg}-${f.maxKg}kg`)),
           el('div',{}, el('span',{},'鱼饵偏好'), el('b',{}, f.baits.map(b=>BAITS.find(x=>x.id===b).emj).join(' '))),
           el('div',{}, el('span',{},'天气/时段'), el('b',{}, f.weathers.join('/')+' · '+f.times.join('/'))),
-        )
+        ),
+        el('div', { class:'reward' }, `+ ${gain} 💰`)
       )
     );
     body.append(card);
