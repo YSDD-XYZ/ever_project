@@ -37,6 +37,15 @@ renderAll();
 pushLog('欢迎来到湖畔垂钓 🎣', 'tip');
 save();
 
+// 监听 game.js 发出的状态变化事件，统一刷新 HUD
+window.addEventListener('game:state-changed', () => {
+  renderHUD();
+  renderPlaces();
+});
+window.addEventListener('game:bait-changed', () => {
+  renderBaits();
+});
+
 // 绑定
 $('cast').addEventListener('click', cast);
 $('reel').addEventListener('click', reel);

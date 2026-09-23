@@ -1,7 +1,7 @@
 // game.js —— 玩法核心（cast / reel / capture / tickFish / 杂项 / 天气）
-import { state } from './state.js';
-import { $, rand, randInt, choice, clamp, toast } from './util.js';
-import { FISH, BAITS, PLACES, WEATHERS, ACHIEVEMENTS } from './data.js';
+import { state, save } from './state.js';
+import { $, el, rand, randInt, choice, clamp, toast } from './util.js';
+import { FISH, BAITS, PLACES, WEATHERS, ACHIEVEMENTS, SHOP } from './data.js';
 import { audio } from './audio.js';
 import { scene } from './scene.js';
 
@@ -28,8 +28,9 @@ function cast(){
   // 通知 3D 场景：抛竿
   scene.cast(castDist);
 
-  // 鱼饵消费 + UI
-  renderBaits();
+  // 鱼饵消费 + UI（发事件让端点层刷新）
+  window.dispatchEvent(new CustomEvent('game:bait-changed'));
+  if (typeof renderBaits === 'function') renderBaits();
 
   $('cast').disabled = true;
   $('reel').disabled = false;
@@ -176,7 +177,8 @@ function miniReelGame(power, weight, breakChance){
     }
     hooked = null; if (fishEl) { fishEl.remove(); fishEl=null; }
     resetAfterAction();
-    renderHUD();
+    window.dispatchEvent(new CustomEvent('game:state-changed'));
+    if (typeof renderHUD === 'function') renderHUD();
   }
   stopBtn.addEventListener('click', stop);
   function keyHandler(e){
@@ -208,14 +210,16 @@ function captureFish(weight, factor=1){
   spawnFloatText('+'+gain+'💰','#ffe28a');
   checkAchievements();
   save();
-  renderHUD();
+  window.dispatchEvent(new CustomEvent('game:state-changed'));
+  if (typeof renderHUD === 'function') renderHUD();
   // 启动 3D 捕获序列；动画结束后再弹模态框、解除按钮锁定
   audio.caught();
   casting = true;
   $('cast').disabled = true;
   $('reel').disabled = true;
   scene.catchSequence(f, () => {
-    showCatchModal(f, weight, gain);
+    window.dispatchEvent(new CustomEvent('game:caught', { detail: { fish: f, weight, gain } }));
+    if (typeof showCatchModal === 'function') showCatchModal(f, weight, gain);
     casting = false;
     $('cast').disabled = false;
     $('reel').disabled = true;
@@ -296,7 +300,8 @@ function tickWorld(){
     state.time = choice(TIMES);
     pushLog('时间流转：'+state.time, 'tip');
   }
-  renderHUD();
+  window.dispatchEvent(new CustomEvent('game:state-changed'));
+  if (typeof renderHUD === 'function') renderHUD();
 }
 setInterval(tickWorld, 6000);
 

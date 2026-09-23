@@ -4,9 +4,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/OrbitControls.js';
 import { Reflector } from 'three/addons/Reflector.js';
-// 把 addons 挂到 THREE 上，保留 `new THREE.Reflector / new OrbitControls` 等原有写法
-THREE.OrbitControls = OrbitControls;
-THREE.Reflector = Reflector;
+import { clamp } from './util.js';
 window.THREE = THREE;
 window.OrbitControls = OrbitControls;
 window.Reflector = Reflector;
@@ -142,7 +140,7 @@ const scene = (() => {
     textureWidth: window.innerWidth * Math.min(window.devicePixelRatio, 2),
     textureHeight: window.innerHeight * Math.min(window.devicePixelRatio, 2),
     color: 0x1a4a78,
-  }) : null;
+  });
   if (reflector){
     reflector.rotation.x = -Math.PI/2;
     reflector.position.y = 0;

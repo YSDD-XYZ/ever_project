@@ -1,7 +1,7 @@
 // ui.js —— DOM 渲染：HUD / 地点 / 鱼饵 / 模态框（图鉴/商店/成就/日志/帮助/捕获）
 import { state } from './state.js';
-import { $ } from './util.js';
-import { FISH, BAITS, SHOP } from './data.js';
+import { $, el, clamp, toast } from './util.js';
+import { FISH, BAITS, PLACES, SHOP } from './data.js';
 
 function renderHUD(){
   $('hud-money').textContent = state.money;
