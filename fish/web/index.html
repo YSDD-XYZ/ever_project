@@ -737,6 +737,27 @@
     50%     { box-shadow: 0 0 0 9999px rgba(5, 10, 18, .55), 0 0 0 10px var(--primary); }
   }
 
+  /* ---------- <noscript> Fallback ---------- */
+  .noscript-fallback {
+    max-width: 480px; margin: 18vh auto;
+    padding: 32px 28px;
+    background: linear-gradient(180deg, #142841, #0a1729);
+    border: 1px solid rgba(91,227,194,.3);
+    border-radius: 16px;
+    text-align: center;
+    color: var(--text);
+  }
+  .noscript-fallback h1 {
+    font-size: 24px; margin-bottom: 16px;
+    background: linear-gradient(90deg, var(--primary-2), var(--primary));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .noscript-fallback p {
+    color: var(--text-2);
+    font-size: 14px; line-height: 1.7;
+    margin-bottom: 8px;
+  }
+
   /* ---------- 中央提示条 ---------- */
   .hint {
     position: absolute; left: 50%; top: 16px;

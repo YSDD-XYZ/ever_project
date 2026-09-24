@@ -603,7 +603,26 @@
   @keyframes loadingSweep {
     from { left: -40%; } to { left: 100%; }
   }
-</style>
+/* ---------- <noscript> Fallback ---------- */
+  .noscript-fallback {
+    max-width: 480px; margin: 18vh auto;
+    padding: 32px 28px;
+    background: linear-gradient(180deg, #142841, #0a1729);
+    border: 1px solid rgba(91,227,194,.3);
+    border-radius: 16px;
+    text-align: center;
+    color: var(--text);
+  }
+  .noscript-fallback h1 {
+    font-size: 24px; margin-bottom: 16px;
+    background: linear-gradient(90deg, var(--primary-2), var(--primary));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .noscript-fallback p {
+    color: var(--text-2);
+    font-size: 14px; line-height: 1.7;
+    margin-bottom: 8px;
+  }</style>
 </head>
 <body>
 
@@ -718,5 +737,13 @@
 
 
 <script type="module" src="./src/main.js"></script>
+
+  <noscript>
+    <div class="noscript-fallback">
+      <h1>🎣 湖畔垂钓</h1>
+      <p>本游戏需要 JavaScript 与 WebGL 才能运行。</p>
+      <p>请在浏览器中启用 JavaScript，或使用支持 WebGL 的现代浏览器（Chrome / Edge / Firefox / Safari）。</p>
+    </div>
+  </noscript>
 </body>
 </html>
