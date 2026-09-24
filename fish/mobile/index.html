@@ -399,9 +399,9 @@
       gap: 10px;
     }
     .cast-power small { display: none; }
-    /* 原 .controls 里的抛杆按钮在 mobile 上被 fixed FAB 替代，隐藏避免重复 */
+    /* mobile FAB 模式：抛杆按钮从 .controls 容器里抽出来浮在右下 */
     .controls .big-cast { display: none; }
-    .big-cast {
+    body > .big-cast {
       /* FAB 化：固定在右下角 */
       position: fixed;
       bottom: 14px;

@@ -51,6 +51,14 @@ renderAll();
 pushLog('欢迎来到湖畔垂钓 🎣', 'tip');
 save();
 
+// mobile FAB 模式：把抛杆按钮移到 body 直接子，让 CSS 'body > .big-cast'
+// 选择器能命中（同时 .controls > .big-cast { display:none } 隐藏原位置）。
+const _fab = document.getElementById('cast');
+const _isMobile = matchMedia('(max-width: 480px)').matches;
+if (_isMobile && _fab && _fab.parentElement !== document.body){
+  document.body.appendChild(_fab);
+}
+
 // 隐藏 loading 屏（DOM 完全就绪）
 const _loadingEl = document.getElementById('loading');
 if (_loadingEl){
