@@ -8,6 +8,7 @@
 
 import { toast } from './util.js';
 import { audio } from './audio.js';
+import { validateState } from './validate.js';
 
 const STORAGE_PREFIX = (typeof window !== 'undefined' && window.__storagePrefix) || 'fishing';
 const SAVE_KEY = `${STORAGE_PREFIX}_save_v1`;
@@ -41,14 +42,26 @@ function defaultState() {
 function load() {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
-    if (raw) return Object.assign(defaultState(), JSON.parse(raw));
-  } catch (e) {}
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const fixed = validateState({ ...parsed, _bait: 'bread' });
+      if (fixed) return fixed;
+    }
+  } catch (e) {
+    console.warn('存档加载失败，使用默认：', e);
+    toast('本地存档损坏，已恢复默认');
+  }
   return defaultState();
 }
 
 function save() {
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
-  toast('已保存 💾');
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    toast('已保存 💾');
+  } catch (e) {
+    // localStorage 满 / Safari 隐私模式 / 配额超限
+    toast('❌ 保存失败：' + (e.message || '存储不可用'));
+  }
 }
 
 function resetState() {
@@ -65,8 +78,9 @@ function applyImportedState(data) {
   if (!data || typeof data !== 'object') {
     throw new Error('存档数据格式无效');
   }
-  // 强制 _bait 重置为 bread（保证 UI 状态一致）
-  state = Object.assign(defaultState(), data, { _bait: 'bread' });
+  const fixed = validateState({ ...data, _bait: 'bread' });
+  if (!fixed) throw new Error('存档字段修复后仍无效');
+  state = fixed;
   toast('存档已导入 ✅');
 }
 

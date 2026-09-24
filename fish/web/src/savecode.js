@@ -85,23 +85,43 @@ export async function encodeSaveCode(state) {
 }
 
 // 解码：'LK1.<base64url>.<crc32>' -> state
-// 失败抛 Error
+// 失败抛 Error（信息已分类：格式 / 校验 / 解压 / 解析 / 字段）
 export async function decodeSaveCode(code) {
-  if (typeof code !== 'string') throw new Error('存档码格式错误');
+  if (typeof code !== 'string') throw new Error('存档码格式错误：不是字符串');
   const trimmed = code.trim().replace(/\s+/g, '');
   const m = trimmed.match(/^LK1\.([A-Za-z0-9_-]+)\.([0-9a-f]{8})$/);
   if (!m) throw new Error('存档码格式错误（应以 LK1. 开头，以 8 位十六进制结尾）');
   const [, b64, crcHex] = m;
-  const compressed = base64UrlToBytes(b64);
+  let compressed;
+  try {
+    compressed = base64UrlToBytes(b64);
+  } catch (e) {
+    throw new Error('存档码 Base64 解码失败');
+  }
   const expectedCrc = parseInt(crcHex, 16);
   const actualCrc = crc32(compressed);
   if (expectedCrc !== actualCrc) {
     throw new Error('存档码校验失败（可能被篡改或截断）');
   }
-  const jsonBytes = await inflate(compressed);
-  const json = new TextDecoder().decode(jsonBytes);
-  const data = JSON.parse(json);
-  if (!data || typeof data !== 'object') throw new Error('存档码内容无效');
+  let jsonBytes;
+  try {
+    jsonBytes = await inflate(compressed);
+  } catch (e) {
+    throw new Error('存档码解压失败（数据可能已损坏）');
+  }
+  let json;
+  try {
+    json = new TextDecoder('decode', { fatal: true }).decode(jsonBytes);
+  } catch (e) {
+    throw new Error('存档码内容不是合法 UTF-8');
+  }
+  let data;
+  try {
+    data = JSON.parse(json);
+  } catch (e) {
+    throw new Error('存档码 JSON 解析失败');
+  }
+  if (!data || typeof data !== 'object') throw new Error('存档码内容不是对象');
   return data;
 }
 

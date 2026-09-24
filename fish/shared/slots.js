@@ -37,7 +37,37 @@ function writeIndex(list) {
 
 // 列出所有 slot（按 updatedAt 倒序）
 export function listSlots() {
-  return readIndex().slice().sort((a, b) => b.updatedAt - a.updatedAt);
+  // 读索引
+  let list = readIndex();
+  // 索引损坏或为空时：尝试从所有 slot_<x> key 重建
+  if (list.length === 0) {
+    list = rebuildIndexFromKeys();
+  }
+  return list.slice().sort((a, b) => b.updatedAt - a.updatedAt);
+}
+
+// 扫描 localStorage 找所有以 <prefix>_slot_ 开头的 key，
+// 从每个 key 的存档码里解析出元信息（updatedAt / length）
+function rebuildIndexFromKeys() {
+  const prefix = `${STORAGE_PREFIX}_slot_`;
+  const list = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (!k || !k.startsWith(prefix)) continue;
+    const id = k.slice(prefix.length);
+    if (!id || !/^[a-z0-9_]+$/i.test(id)) continue;
+    const key = localStorage.getItem(k) || '';
+    list.push({
+      id,
+      name: defaultName(Date.now() - i * 60000),  // 用 key 顺序推时间
+      createdAt: Date.now() - i * 60000,
+      updatedAt: Date.now() - i * 60000,
+      length: key.length,
+      _recovered: true,  // 标记这是恢复出来的
+    });
+  }
+  if (list.length) writeIndex(list);
+  return list;
 }
 
 // 取一个 slot 的 key（完整存档码）
