@@ -3,6 +3,7 @@ import { state, applyImportedState } from './state.js';
 import { $, el, clamp, toast } from './util.js';
 import { FISH, BAITS, PLACES, SHOP, ACHIEVEMENTS } from './data.js';
 import { encodeSaveCode, decodeSaveCode, looksLikeSaveCode } from './savecode.js';
+import { listSlots, getSlotKey, renameSlot, deleteSlot, saveToNewSlot, importToSlot, defaultName } from './slots.js';
 
 function renderHUD(){
   $('hud-money').textContent = state.money;
@@ -285,4 +286,168 @@ function togglePlacesDrawer(){
   }
 }
 
-export { renderHUD, renderPlaces, renderBaits, openModal, closeModal, showCodex, showShop, showAchv, showLogs, showHelp, showCatchModal, showSaveCode, importSaveCode, togglePlacesDrawer, buyItem };
+// ---- 多存档槽模态 ----
+function fmtTime(t) {
+  const d = new Date(t);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+async function showSlots() {
+  // 渲染模态
+  openModal('存档槽 📚', body => {
+    const wrap = el('div', { id:'slots-list', style:'display:flex;flex-direction:column;gap:10px;' });
+
+    const slots = listSlots();
+    if (slots.length === 0) {
+      wrap.append(el('div', { style:'text-align:center;color:var(--text-3);font-size:13px;padding:32px 0;' },
+        '还没有存档。点击「➕ 新建当前存档」或「📥 导入外部 key」来添加。'));
+    } else {
+      slots.forEach(s => wrap.append(renderSlotRow(s)));
+    }
+
+    const actions = el('div', { style:'display:flex;gap:8px;margin-top:14px;' },
+      el('button', { class:'btn primary', id:'slot-new', style:'flex:1;' }, '➕ 新建当前存档'),
+      el('button', { class:'btn', id:'slot-import', style:'flex:1;' }, '📥 导入 key'),
+    );
+
+    body.append(wrap, actions);
+  });
+
+  // 重新绑定（因为 openModal 替换了 body 内容，但 modal-mask 没换）
+  setTimeout(() => {
+    $('slot-new')?.addEventListener('click', onSlotNew);
+    $('slot-import')?.addEventListener('click', onSlotImport);
+    document.querySelectorAll('[data-slot-action]').forEach(btn => {
+      btn.addEventListener('click', () => handleSlotAction(btn.dataset.slotAction, btn.dataset.slotId));
+    });
+  }, 0);
+}
+
+function renderSlotRow(slot) {
+  const row = el('div', { class:'slot-row', style:'background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-md);padding:12px 14px;' });
+  // 标题行
+  const head = el('div', { style:'display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;' });
+  const left = el('div', { style:'display:flex;align-items:center;gap:8px;flex:1;min-width:0;' });
+  const nameIpt = el('input', { type:'text', value: slot.name, maxlength:'24', style:'background:transparent;border:1px solid transparent;border-radius:6px;padding:4px 6px;color:var(--text);font-weight:600;font-size:14px;width:100%;' });
+  nameIpt.addEventListener('change', () => {
+    if (renameSlot(slot.id, nameIpt.value.trim())) toast('已重命名');
+  });
+  nameIpt.addEventListener('keydown', e => { if (e.key === 'Enter') nameIpt.blur(); });
+  left.append(nameIpt);
+  const updated = el('div', { style:'font-size:11px;color:var(--text-3);white-space:nowrap;' }, '更新于 ' + fmtTime(slot.updatedAt));
+  head.append(left, updated);
+  row.append(head);
+
+  // meta
+  const meta = el('div', { style:'font-size:11px;color:var(--text-3);margin-bottom:10px;font-variant-numeric:tabular-nums;' },
+    `key 长度 ${slot.length} 字符 · 创建 ${fmtTime(slot.createdAt)}`);
+  row.append(meta);
+
+  // 按钮行
+  const btns = el('div', { style:'display:flex;gap:6px;flex-wrap:wrap;' });
+  btns.append(
+    el('button', { class:'btn primary', 'data-slot-action':'load', 'data-slot-id': slot.id, style:'flex:1;padding:6px 10px;font-size:12px;' }, '⬇️ 加载'),
+    el('button', { class:'btn', 'data-slot-action':'copy', 'data-slot-id': slot.id, style:'flex:1;padding:6px 10px;font-size:12px;' }, '📋 复制 key'),
+    el('button', { class:'btn', 'data-slot-action':'view', 'data-slot-id': slot.id, style:'flex:1;padding:6px 10px;font-size:12px;' }, '👁 查看'),
+    el('button', { class:'btn', 'data-slot-action':'delete', 'data-slot-id': slot.id, style:'padding:6px 10px;font-size:12px;color:var(--danger);border-color:rgba(255,118,118,.3);' }, '🗑'),
+  );
+  row.append(btns);
+  return row;
+}
+
+async function onSlotNew() {
+  // 弹命名提示
+  const name = prompt('为这个存档命名：', defaultName());
+  if (name === null) return;
+  try {
+    const code = await encodeSaveCode(state);
+    const slot = saveToNewSlot(code, name);
+    toast(`已新建存档「${slot.name}」`);
+    refreshSlotsList();
+  } catch (e) {
+    toast('❌ 生成失败：' + (e.message || e));
+  }
+}
+
+function onSlotImport() {
+  const code = prompt('粘贴存档码（以 LK1. 开头）：');
+  if (!code) return;
+  if (!looksLikeSaveCode(code)) {
+    toast('❌ 存档码格式无效');
+    return;
+  }
+  const name = prompt('为这个导入存档命名：', defaultName());
+  if (name === null) return;
+  try {
+    importToSlot(code, name);
+    toast('已导入到存档槽');
+    refreshSlotsList();
+  } catch (e) {
+    toast('❌ ' + (e.message || e));
+  }
+}
+
+async function handleSlotAction(action, id) {
+  const slot = listSlots().find(s => s.id === id);
+  if (!slot) return;
+  const key = getSlotKey(id);
+  switch (action) {
+    case 'load': {
+      if (!key) { toast('该存档数据丢失'); return; }
+      if (!confirm(`加载「${slot.name}」会覆盖当前进度，确定？`)) return;
+      const r = await importSaveCode(key);
+      if (!r.ok) { toast('❌ ' + r.error); return; }
+      closeModal();
+      break;
+    }
+    case 'copy': {
+      if (!key) { toast('该存档数据丢失'); return; }
+      try {
+        await navigator.clipboard.writeText(key);
+        toast('✓ key 已复制');
+      } catch (e) {
+        toast('复制失败，请手动复制');
+      }
+      break;
+    }
+    case 'view': {
+      // 在导出模态里显示完整 key
+      _saveCodeCache = key;
+      closeModal();
+      setTimeout(() => {
+        openModal(`查看 key：${slot.name} 🔑`, body => {
+          const intro = el('p', { style:'color:var(--text-2);font-size:12px;margin-bottom:10px;' },
+            '这是存档「' + slot.name + '」的完整 key。可复制后保存到任何地方。');
+          const wrap = el('div', { style:'position:relative;background:rgba(0,0,0,.3);padding:14px;border-radius:var(--r-md);border:1px solid var(--border);' });
+          const ta = el('textarea', { readonly: 'readonly', style:'width:100%;min-height:120px;background:transparent;color:var(--primary);font-family:ui-monospace,Menlo,monospace;font-size:11px;line-height:1.5;word-break:break-all;border:0;outline:0;' }, key);
+          const copyBtn = el('button', { class:'btn primary', style:'position:absolute;top:10px;right:10px;padding:6px 12px;font-size:12px;' }, '📋 复制');
+          copyBtn.addEventListener('click', async () => {
+            try { await navigator.clipboard.writeText(key); copyBtn.textContent = '✓'; setTimeout(() => copyBtn.textContent = '📋 复制', 1200); } catch (e) {}
+          });
+          wrap.append(ta, copyBtn);
+          const back = el('button', { class:'btn', style:'width:100%;margin-top:10px;' }, '← 返回存档槽');
+          back.addEventListener('click', showSlots);
+          body.append(intro, wrap, back);
+        });
+      }, 50);
+      break;
+    }
+    case 'delete': {
+      if (!confirm(`删除「${slot.name}」？此操作不可撤销。`)) return;
+      deleteSlot(id);
+      toast('已删除');
+      refreshSlotsList();
+      break;
+    }
+  }
+}
+
+function refreshSlotsList() {
+  // 重新打开存档槽模态（包含最新数据）
+  closeModal();
+  setTimeout(showSlots, 50);
+}
+
+
+export { renderHUD, renderPlaces, renderBaits, openModal, closeModal, showCodex, showShop, showAchv, showLogs, showHelp, showCatchModal, showSaveCode, importSaveCode, showSlots, togglePlacesDrawer, buyItem };

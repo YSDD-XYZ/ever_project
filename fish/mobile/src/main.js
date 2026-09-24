@@ -9,7 +9,7 @@ import {
   renderHUD, renderPlaces, renderBaits,
   showLogs, showCodex, showShop, showAchv, showHelp,
   togglePlacesDrawer,
-  showSaveCode, importSaveCode,
+  showSaveCode, importSaveCode, showSlots,
   openModal, closeModal,
 } from './ui.js';
 
@@ -174,6 +174,7 @@ $('reel').addEventListener('click', reel);
 $('power').addEventListener('input', e => $('power-val').textContent = e.target.value);
 $('btn-save').addEventListener('click', () => showSaveCode());
 $('btn-load').addEventListener('click', () => showImportDialog());
+$('btn-slots')?.addEventListener('click', () => showSlots());
 $('btn-reset').addEventListener('click', () => {
   if (confirm('确定要重新开始吗？所有进度会丢失。')) {
     resetState();

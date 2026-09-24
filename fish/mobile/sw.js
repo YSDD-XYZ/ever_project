@@ -1,5 +1,5 @@
 // fish/sw.js —— 离线缓存（PWA）
-const VERSION = 'v3';
+const VERSION = 'v4';
 const CACHE = `lake-fishing-${VERSION}`;
 
 // 仅缓存 mobile/ 自身路径下的资源；CDN 资源走网络
@@ -17,6 +17,7 @@ const PRECACHE = [
   './src/game.js',
   './src/ui.js',
   './src/savecode.js',
+  './src/slots.js',
   './vendor/three.module.min.js',
   './vendor/OrbitControls.js',
   './vendor/Reflector.js',
