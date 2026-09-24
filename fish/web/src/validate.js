@@ -50,6 +50,7 @@ export function defaultStateShape() {
     owned: ['rod-basic'], equip: 'rod-basic',
     codex: {}, places: {}, log: [], achievements: {},
     placeId: 'pond', weather: '晴', time: '清晨',
+    _bait: 'bread',  // 临时 UI 状态：当前选中的鱼饵
   };
 }
 
@@ -87,6 +88,7 @@ export function validateState(data) {
   data.equip   = string(data.equip,   [...SHOP_IDS],  'rod-basic');
   data.weather = string(data.weather, WEATHERS, '晴');
   data.time    = string(data.time,    TIMES,    '清晨');
+  data._bait   = string(data._bait,   [...BAIT_IDS], 'bread');  // 临时 UI 状态
 
   // —— 鱼饵：保留已知 key，丢掉未知，数量 clamp —— //
   const baits = obj(data.baits, {});

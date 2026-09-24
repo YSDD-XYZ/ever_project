@@ -31,9 +31,16 @@ function cast(){
   // 鱼饵消费 + UI（发事件让端点层刷新）
   window.dispatchEvent(new CustomEvent('game:bait-changed'));
   if (typeof renderBaits === 'function') renderBaits();
+  // 同时派发 state-changed 让 stat-cast 等 HUD 字段立刻更新
+  window.dispatchEvent(new CustomEvent('game:state-changed'));
+  if (typeof renderHUD === 'function') renderHUD();
 
   $('cast').disabled = true;
   $('reel').disabled = false;
+  $('btn-reset')?.setAttribute('disabled','disabled');
+  $('btn-save')?.setAttribute('disabled','disabled');
+  $('btn-load')?.setAttribute('disabled','disabled');
+  $('btn-slots')?.setAttribute('disabled','disabled');
   toast('抛竿，等待鱼儿上钩…');
 
   // 等 2.5~6 秒
@@ -42,6 +49,7 @@ function cast(){
 }
 
 function tryBite(power){
+  if (!casting) return;  // 重开或异常退出后，已经没有进行中的抛竿
   // 决定是否上钩
   const place = PLACES.find(p=>p.id===state.placeId);
   const bait = state._bait;
@@ -196,9 +204,12 @@ function captureFish(weight, factor=1){
   state.totalCatch++;
   if (weight > state.biggestKg) state.biggestKg = weight;
   state.xp += Math.round(8 + weight*2);
-  while (state.xp >= state.level*50) {
-    state.xp -= state.level*50;
+  // 升级：每次只升 1 级，xp 扣到下一级所需（最多连升 50 次防意外爆级）
+  let up = 0;
+  while (state.xp >= state.level * 50 && up < 50) {
+    state.xp -= state.level * 50;
     state.level++;
+    up++;
     toast(`升级！Lv.${state.level} 🎉`);
   }
   state.codex[f.id] = (state.codex[f.id]||0)+1;
@@ -217,12 +228,20 @@ function captureFish(weight, factor=1){
   casting = true;
   $('cast').disabled = true;
   $('reel').disabled = true;
+  $('btn-reset')?.setAttribute('disabled','disabled');
+  $('btn-save')?.setAttribute('disabled','disabled');
+  $('btn-load')?.setAttribute('disabled','disabled');
+  $('btn-slots')?.setAttribute('disabled','disabled');
   scene.catchSequence(f, () => {
     window.dispatchEvent(new CustomEvent('game:caught', { detail: { fish: f, weight, gain } }));
     if (typeof showCatchModal === 'function') showCatchModal(f, weight, gain);
     casting = false;
     $('cast').disabled = false;
     $('reel').disabled = true;
+    $('btn-reset')?.removeAttribute('disabled');
+    $('btn-save')?.removeAttribute('disabled');
+    $('btn-load')?.removeAttribute('disabled');
+    $('btn-slots')?.removeAttribute('disabled');
     scene.bobberReset();
   });
 }
@@ -278,8 +297,14 @@ function hintAt(text, ms=1200){
 
 function resetAfterAction(){
   casting = false;
+  reeling = false;
+  hooked = null;
   $('cast').disabled = false;
   $('reel').disabled = true;
+  $('btn-reset')?.removeAttribute('disabled');
+  $('btn-save')?.removeAttribute('disabled');
+  $('btn-load')?.removeAttribute('disabled');
+  $('btn-slots')?.removeAttribute('disabled');
   scene.bobberReset();
   // 移除 DOM 残留飘字
   if (fishEl && fishEl.dispose) fishEl.dispose();

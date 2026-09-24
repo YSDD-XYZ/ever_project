@@ -34,7 +34,7 @@ document.addEventListener('mouseover', (e) => {
   }
 });
 
-state._bait = 'bread';
+// state._bait 由 validate.js 兜底为 'bread'；用户上次选择会从 localStorage 恢复
 renderAll();
 pushLog('欢迎来到湖畔垂钓 🎣', 'tip');
 save();

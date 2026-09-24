@@ -137,6 +137,8 @@ function buyItem(s){
   toast('购入 '+s.name);
   save();
   renderHUD(); renderBaits();
+  window.dispatchEvent(new CustomEvent('game:state-changed'));
+  window.dispatchEvent(new CustomEvent('game:bait-changed'));
   showShop();
 }
 
@@ -260,6 +262,7 @@ async function importSaveCode(code) {
   try {
     const data = await decodeSaveCode(code);
     applyImportedState(data);
+    state._bait = 'bread';
     renderHUD(); renderPlaces(); renderBaits();
     window.dispatchEvent(new CustomEvent('game:state-changed'));
     window.dispatchEvent(new CustomEvent('game:bait-changed'));

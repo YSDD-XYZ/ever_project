@@ -53,7 +53,9 @@ function renderBaits(){
     const node = el('div', { class:cls, onclick: ()=>{
       if (cnt<=0) { toast('这种鱼饵用完了，去商店买一些吧'); return; }
       state._bait = b.id;
+      save();   // 持久化选中的鱼饵，刷新后保留
       renderBaits();
+      window.dispatchEvent(new CustomEvent('game:bait-changed'));
     }},
       el('div',{class:'emoji'},b.emj),
       el('div',{class:'nm'}, b.name),
@@ -137,6 +139,8 @@ function buyItem(s){
   toast('购入 '+s.name);
   save();
   renderHUD(); renderBaits();
+  window.dispatchEvent(new CustomEvent('game:state-changed'));
+  window.dispatchEvent(new CustomEvent('game:bait-changed'));
   showShop();
 }
 
@@ -260,6 +264,8 @@ async function importSaveCode(code) {
   try {
     const data = await decodeSaveCode(code);
     applyImportedState(data);
+    // _bait 是临时 UI 状态：validateState 已删除，重新设默认
+    state._bait = 'bread';
     renderHUD(); renderPlaces(); renderBaits();
     // 触发监听事件，让 main.js 的 state-changed 监听器也跑
     window.dispatchEvent(new CustomEvent('game:state-changed'));
