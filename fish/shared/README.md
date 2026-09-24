@@ -1,47 +1,77 @@
-# shared/
+# 📚 shared/ — 跨 web/mobile 复用模块
 
-跨 `web/` 与 `mobile/` 复用的源代码。每个文件同时复制到 `web/src/` 与 `mobile/src/`，
-保证两端可以独立部署（不需要 monorepo 视图）。
+> 9 个核心模块。**所有逻辑都在这里**，web 与 mobile 只通过各自的 `main.js` / `ui.js` 适配层调用。
 
-## 文件清单
+## 模块清单
 
-| 文件 | 内容 |
-|---|---|
-| `state.js`  | 全局游戏状态的唯一来源：`defaultState / load / save / resetState / armAudio` |
-| `util.js`   | DOM 工具：`$ / el / rand / randInt / choice / clamp / toast` |
-| `data.js`   | 数据层：`FISH / BAITS / PLACES / WEATHERS / TIMES / ACHIEVEMENTS / SHOP` |
-| `audio.js`  | WebAudio 程序化合成：BGM + 抛竿 / 收线 / 捕获 + UI 音效 |
-| `game.js`   | 玩法逻辑：`cast / reel / capture / tickFish / tickWorld` 等 |
-| `scene.js`  | Three.js 3D 场景：水面 / 山 / 月 / 鱼 / 后处理 |
+| 模块 | 行数 | 职责 |
+|---|---|---|
+| [`state.js`](./state.js) | ~95 | state binding + `load/save/resetState/applyImportedState` |
+| [`validate.js`](./validate.js) | ~160 | 字段白名单 / 类型 / 范围校验（修复坏数据） |
+| [`util.js`](./util.js) | ~80 | DOM helper：`$` / `el` / `clamp` / `toast` / `rand` |
+| [`data.js`](./data.js) | ~280 | 常量：`FISH` / `BAITS` / `PLACES` / `SHOP` / `ACHIEVEMENTS` |
+| [`audio.js`](./audio.js) | ~190 | WebAudio BGM + 音效（cast/splash/reel/click/...） |
+| [`scene.js`](./scene.js) | ~820 | Three.js 3D 场景：水面、浮漂、捕获序列、天气粒子 |
+| [`game.js`](./game.js) | ~340 | 玩法逻辑：`cast` / `tryBite` / `reel` / `miniReelGame` / `captureFish` |
+| [`savecode.js`](./savecode.js) | ~95 | 离线存档码 `LK1.<b64>.<crc32>`：编码 / 解码 / CRC32 |
+| [`slots.js`](./slots.js) | ~110 | 多存档槽管理：localStorage 列表 + 自动重建索引 |
 
-## 修改规范
+> 端点（`web/src/main.js` + `mobile/src/main.js`）只负责：DOM 事件绑定 / 屏幕适配 / 触屏行为差异化。
+>
+> 业务规则（抛竿成功率、收线判定、鱼价、升级曲线、成就触发）全部在 `shared/`。
 
-1. **改 shared/ 后必须同步**：
-
-   ```bash
-   bash scripts/sync-shared.sh
-   ```
-
-   该脚本会把 main.js / ui.js 以外的文件拷到 `web/src/` 与 `mobile/src/`。
-
-2. **改 main.js / ui.js**：这些是端点专属，**不能放 shared/**。
-
-3. **CI 自动校验**：`.github/workflows/lint-sync.yml` 跑 sync-shared.sh，若 working tree 有变动说明同步未提交，会失败。
-
-## 依赖图（端点 → shared）
+## 📦 数据流
 
 ```
-main.js ──┬── state.js ──── util.js
-          ├── audio.js
-          ├── scene.js        (无 shared 依赖；用全局 THREE)
-          ├── game.js ────┬── state.js
-          │               ├── data.js
-          │               ├── audio.js
-          │               ├── scene.js
-          │               └── util.js
-          └── ui.js ───────┬── state.js
-                           ├── data.js
-                           └── util.js
+[localStorage]
+   ↓ load()
+[validateState()] ──→ [state] ──→ [renderHUD/renderPlaces/...]
+   ↑ save()                              ↓
+   └────────── [cast/reel/buyItem/...] ───┘
+                                  ↓
+                            [game:state-changed]
+                            [game:bait-changed]
+                            [game:caught]
 ```
 
-无循环依赖；`scene.js` 依赖全局 `THREE`（由 CDN 引入）。
+## 🔄 同步
+
+`shared/` 是单一真源。每次修改后跑：
+
+```bash
+bash scripts/sync-shared.sh
+```
+
+把以下文件同步到 `web/src/`、`mobile/src/`、`vendor/`：
+
+```
+shared/state.js     → web/src/state.js     → mobile/src/state.js
+shared/util.js      → web/src/util.js      → mobile/src/util.js
+shared/data.js      → web/src/data.js      → mobile/src/data.js
+shared/audio.js     → web/src/audio.js     → mobile/src/audio.js
+shared/game.js      → web/src/game.js      → mobile/src/game.js
+shared/scene.js     → web/src/scene.js     → mobile/src/scene.js
+shared/savecode.js  → web/src/savecode.js  → mobile/src/savecode.js
+shared/slots.js     → web/src/slots.js     → mobile/src/slots.js
+shared/validate.js  → web/src/validate.js  → mobile/src/validate.js
+```
+
+## 🔁 依赖图（无环）
+
+```
+audio.js      ──(叶)
+data.js       ──(叶)
+util.js       ──(叶)
+validate.js   → data.js
+state.js      → util.js, audio.js, validate.js
+slots.js      ──(叶)
+savecode.js   ──(叶)
+scene.js      → util.js
+game.js       → state, util, data, audio, scene
+```
+
+ui.js 不 import game.js（避免共享模块循环）；game.js 不 import ui.js（保持端点无关）。
+
+## 📜 License
+
+MIT
