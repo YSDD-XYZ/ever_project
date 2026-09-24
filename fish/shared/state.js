@@ -44,7 +44,8 @@ function load() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      const fixed = validateState({ ...parsed, _bait: 'bread' });
+      // _bait 缺失时兜底为 'bread'（不要用 spread 覆盖，否则会丢弃用户选择）
+      const fixed = validateState({ ...parsed, _bait: parsed._bait ?? 'bread' });
       if (fixed) return fixed;
     }
   } catch (e) {
@@ -78,7 +79,8 @@ function applyImportedState(data) {
   if (!data || typeof data !== 'object') {
     throw new Error('存档数据格式无效');
   }
-  const fixed = validateState({ ...data, _bait: 'bread' });
+  // _bait 缺失时兜底；不要用 spread 覆盖用户的有效选择
+  const fixed = validateState({ ...data, _bait: data._bait ?? 'bread' });
   if (!fixed) throw new Error('存档字段修复后仍无效');
   state = fixed;
   toast('存档已导入 ✅');

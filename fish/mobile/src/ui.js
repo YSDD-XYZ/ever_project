@@ -1,5 +1,5 @@
 // ui.js —— DOM 渲染：HUD / 地点 / 鱼饵 / 模态框（图鉴/商店/成就/日志/帮助/捕获/存档码）
-import { state, applyImportedState } from './state.js';
+import { state, applyImportedState, save } from './state.js';
 import { $, el, clamp, toast } from './util.js';
 import { FISH, BAITS, PLACES, SHOP, ACHIEVEMENTS } from './data.js';
 import { encodeSaveCode, decodeSaveCode, looksLikeSaveCode } from './savecode.js';
@@ -53,7 +53,9 @@ function renderBaits(){
     const node = el('div', { class:cls, onclick: ()=>{
       if (cnt<=0) { toast('这种鱼饵用完了，去商店买一些吧'); return; }
       state._bait = b.id;
+      save();
       renderBaits();
+      window.dispatchEvent(new CustomEvent('game:bait-changed'));
     }},
       el('div',{class:'emoji'},b.emj),
       el('div',{class:'nm'}, b.name),
@@ -262,7 +264,6 @@ async function importSaveCode(code) {
   try {
     const data = await decodeSaveCode(code);
     applyImportedState(data);
-    state._bait = 'bread';
     renderHUD(); renderPlaces(); renderBaits();
     window.dispatchEvent(new CustomEvent('game:state-changed'));
     window.dispatchEvent(new CustomEvent('game:bait-changed'));

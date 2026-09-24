@@ -1,5 +1,5 @@
 // ui.js —— DOM 渲染：HUD / 地点 / 鱼饵 / 模态框（图鉴/商店/成就/日志/帮助/捕获/存档码）
-import { state, applyImportedState } from './state.js';
+import { state, applyImportedState, save } from './state.js';
 import { $, el, clamp, toast } from './util.js';
 import { FISH, BAITS, PLACES, SHOP, ACHIEVEMENTS } from './data.js';
 import { encodeSaveCode, decodeSaveCode, looksLikeSaveCode } from './savecode.js';
@@ -264,8 +264,7 @@ async function importSaveCode(code) {
   try {
     const data = await decodeSaveCode(code);
     applyImportedState(data);
-    // _bait 是临时 UI 状态：validateState 已删除，重新设默认
-    state._bait = 'bread';
+    // _bait 已由 validate.js 兜底，不需要这里再强制设
     renderHUD(); renderPlaces(); renderBaits();
     // 触发监听事件，让 main.js 的 state-changed 监听器也跑
     window.dispatchEvent(new CustomEvent('game:state-changed'));
