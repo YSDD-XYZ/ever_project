@@ -43,8 +43,23 @@ function cast(){
   $('btn-slots')?.setAttribute('disabled','disabled');
   toast('抛竿，等待鱼儿上钩…');
 
-  // 等 2.5~6 秒
+  // 等 2.5~6 秒（移动端 cooldown 圆环动画）
   const wait = rand(2500, 6000);
+  const ring = $('cast-ring');
+  const ringFill = $('cast-ring-fill');
+  const startT = performance.now();
+  if (ring && ringFill){
+    ring.classList.add('show');
+    const total = 289;  // 2πr ≈ 289
+    const tick = () => {
+      const elapsed = performance.now() - startT;
+      const remain = Math.max(0, 1 - elapsed / wait);
+      ringFill.setAttribute('stroke-dashoffset', String(total * (1 - remain)));
+      if (elapsed < wait) requestAnimationFrame(tick);
+      else ring.classList.remove('show');
+    };
+    requestAnimationFrame(tick);
+  }
   setTimeout(()=> tryBite(power), wait);
 }
 

@@ -53,14 +53,6 @@ renderAll();
 pushLog('欢迎来到湖畔垂钓 🎣', 'tip');
 save();
 
-// mobile FAB 模式：把抛杆按钮移到 body 直接子，让 CSS 'body > .big-cast'
-// 选择器能命中（同时 .controls > .big-cast { display:none } 隐藏原位置）。
-const _fab = document.getElementById('cast');
-const _isMobile = matchMedia('(max-width: 480px)').matches;
-if (_isMobile && _fab && _fab.parentElement !== document.body){
-  document.body.appendChild(_fab);
-}
-
 // 隐藏 loading 屏（DOM 完全就绪）
 const _loadingEl = document.getElementById('loading');
 if (_loadingEl){
@@ -81,12 +73,12 @@ function runOnboarding(){
     },
     {
       title: '选择鱼饵',
-      desc:  '鱼饵栏有 5 种鱼饵：面团、蚯蚓、玉米、河虾、亮片假饵。不同的鱼对鱼饵有偏好。',
-      highlight: '#bait-grid',
+      desc:  '底部有 5 种鱼饵：面团、蚯蚓、玉米、河虾、亮片假饵。不同的鱼对鱼饵有偏好，左右横滑可看全部。',
+      highlight: '#bait-row',
     },
     {
       title: '调整力度后抛竿',
-      desc:  '力度滑块越大，抛得越远，稀有鱼出现概率也越高。点击右下的橙色大按钮开始抛竿。',
+      desc:  '力度越大，抛得越远，稀有鱼出现概率也越高。点「抛竿」开始；冷却时右下圆环会倒计时。',
       highlight: '#cast',
     },
     {
@@ -96,7 +88,7 @@ function runOnboarding(){
     },
     {
       title: '收线小游戏',
-      desc:  '点击「↩ 收线」后，指针会左右扫动。按下空格或点击「锁定」停在绿色区间内 = 完美收线。',
+      desc:  '点「↩ 收线」后，指针左右扫动。点击「锁定」停在绿色区间内 = 完美收线，偏离越远越容易断线。',
       highlight: '#reel',
     },
     {
@@ -169,13 +161,48 @@ window.addEventListener('game:bait-changed', () => {
 });
 
 // 绑定
-$('cast').addEventListener('click', cast);
-$('reel').addEventListener('click', reel);
-$('power').addEventListener('input', e => $('power-val').textContent = e.target.value);
-$('btn-save').addEventListener('click', () => showSaveCode());
-$('btn-load').addEventListener('click', () => showImportDialog());
-$('btn-slots')?.addEventListener('click', () => showSlots());
-$('btn-reset').addEventListener('click', () => {
+$('cast').addEventListener('click', () => { vibrate(20); cast(); });
+$('reel').addEventListener('click', () => { vibrate(15); reel(); });
+$('power').addEventListener('input', e => {
+  $('power-val').textContent = e.target.value;
+  $('power-fill').style.width = e.target.value + '%';
+});
+// 力度按钮
+$('power-up')?.addEventListener('click', () => {
+  const p = $('power');
+  p.value = Math.min(100, +p.value + 5);
+  p.dispatchEvent(new Event('input'));
+});
+$('power-down')?.addEventListener('click', () => {
+  const p = $('power');
+  p.value = Math.max(0, +p.value - 5);
+  p.dispatchEvent(new Event('input'));
+});
+// 顶栏菜单按钮 → 打开 FAB 菜单
+$('btn-menu')?.addEventListener('click', () => toggleFabMenu());
+// FAB 菜单
+$('btn-fab')?.addEventListener('click', () => toggleFabMenu());
+document.querySelectorAll('#fab-menu .fab-item').forEach(b => b.addEventListener('click', () => {
+  const m = b.dataset.modo;
+  // 存档操作走专用按钮
+  if (b.id === 'fab-save')  { closeFabMenu(); showSaveCode(); return; }
+  if (b.id === 'fab-load')  { closeFabMenu(); showImportDialog(); return; }
+  if (b.id === 'fab-slots') { closeFabMenu(); showSlots(); return; }
+  if (b.id === 'fab-reset') { closeFabMenu(); $('btn-reset')?.click(); return; }
+  // 模态
+  if (!m) return;
+  closeFabMenu();
+  if (m === 'places') togglePlacesDrawer();
+  else if (m === 'logs')  showLogs();
+  else if (m === 'codex') showCodex();
+  else if (m === 'shop')  showShop();
+  else if (m === 'achv')  showAchv();
+  else if (m === 'help')  showHelp();
+}));
+// 点击 FAB 背景关闭菜单
+document.querySelector('.fab-backdrop')?.addEventListener('click', closeFabMenu);
+// 旧的 reset 按钮（保留兼容性，可能被 JS 触发）
+$('btn-reset')?.addEventListener('click', () => {
   if (confirm('确定要重新开始吗？所有进度会丢失。')) {
     resetState();
     // 关闭可能打开的模态（防止显示过期的存档码等）
@@ -206,6 +233,29 @@ function showImportDialog(){
     body.append(intro, ta, errBox, importBtn, cancelBtn);
   });
 }
+
+// FAB 菜单切换
+function toggleFabMenu(){
+  const menu = $('fab-menu');
+  const backdrop = document.querySelector('.fab-backdrop');
+  if (!menu) return;
+  const isOpen = menu.classList.toggle('open');
+  backdrop?.classList.toggle('show', isOpen);
+  $('btn-fab')?.setAttribute('aria-expanded', isOpen);
+  vibrate(8);
+}
+function closeFabMenu(){
+  $('fab-menu')?.classList.remove('open');
+  document.querySelector('.fab-backdrop')?.classList.remove('show');
+  $('btn-fab')?.setAttribute('aria-expanded', 'false');
+}
+
+// 触觉反馈：移动端 vibrate
+function vibrate(ms = 10){
+  if (navigator.vibrate) navigator.vibrate(ms);
+}
+
+// 旧 side-btn 兼容：保留旧 class 的元素仍可触发（如果某页面有遗留）
 document.querySelectorAll('.side-btn').forEach(b => b.addEventListener('click', () => {
   const m = b.dataset.modo;
   if (m === 'places') togglePlacesDrawer();

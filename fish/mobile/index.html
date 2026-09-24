@@ -77,31 +77,37 @@
 
   /* ---------- 顶部 HUD ---------- */
   .hud {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 20px;
-    background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0));
-    border-bottom: 1px solid var(--border);
-    backdrop-filter: blur(8px);
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 8px 14px 6px;
+    background: linear-gradient(180deg, rgba(0,0,0,.32), rgba(0,0,0,0));
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    position: relative; z-index: 5;
   }
-  .hud .left, .hud .right { display: flex; align-items: center; gap: 10px; }
+  .hud-row { display: flex; align-items: center; gap: 8px; }
+  .hud-primary { justify-content: space-between; }
+  .hud-secondary { justify-content: space-between; padding-left: 2px; }
+  .hud-secondary .chip { padding: 4px 8px; font-size: 11px; }
   .title {
-    font-weight: 800; letter-spacing: 1.5px; font-size: var(--fs-xl);
+    font-weight: 800; letter-spacing: 1px; font-size: 14px;
     background: linear-gradient(90deg, var(--primary-2), var(--primary));
     -webkit-background-clip: text; background-clip: text; color: transparent;
-    margin-right: 6px;
+    white-space: nowrap;
   }
   .chip {
-    background: var(--surface-2);
+    background: rgba(255,255,255,0.05);
     border: 1px solid var(--border);
-    padding: 6px 12px; border-radius: var(--r-pill);
-    font-size: var(--fs-md); display: flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: var(--r-pill);
+    font-size: var(--fs-md); display: inline-flex; align-items: center; gap: 5px;
     color: var(--text);
     transition: background .15s;
+    backdrop-filter: blur(4px);
   }
-  .chip:hover { background: rgba(255,255,255,.08); }
+  .chip:active { background: rgba(255,255,255,.12); }
   .chip b { color: var(--accent); font-weight: 700; }
+  .chip-money b { font-variant-numeric: tabular-nums; min-width: 1.6em; text-align: right; }
+  .chip-menu { padding: 4px 10px; font-size: 16px; font-weight: 700; cursor: pointer; min-width: 36px; justify-content: center; }
   .xp-bar {
-    width: 100px; height: 6px; border-radius: var(--r-pill);
+    width: 80px; height: 5px; border-radius: var(--r-pill);
     background: rgba(255,255,255,.08); overflow: hidden; position: relative;
   }
   .xp-bar > i {
@@ -171,8 +177,26 @@
   }
   .panel .body { padding: 14px 16px; }
 
-  /* ---------- 地点面板 ---------- */
-  .left-panel { left: 16px; top: 16px; width: 280px; }
+  /* ---------- 地点面板（mobile 专用：抽屉 + 半透明背景） ---------- */
+  .place-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5);
+    backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+    z-index: 49; opacity: 0; pointer-events: none;
+    transition: opacity .25s;
+  }
+  .place-backdrop.show { opacity: 1; pointer-events: auto; }
+  .left-panel {
+    left: 0; top: 0; bottom: 0;
+    width: 84vw; max-width: 360px;
+    border-radius: 0;
+    border-right: 1px solid var(--border-strong);
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform .25s cubic-bezier(.2, .8, .3, 1);
+    overflow-y: auto;
+    box-shadow: 4px 0 24px rgba(0,0,0,.4);
+  }
+  .left-panel.open { transform: translateX(0); }
   .place-list { display: grid; gap: 10px; }
   .place {
     border: 1px solid var(--border);
@@ -185,10 +209,25 @@
   }
   .place:hover {
     background: rgba(255,255,255,.07);
-    transform: translateX(2px);
     border-color: var(--border-strong);
   }
-  .place.locked { opacity: .55; cursor: not-allowed; }
+  .place.active {
+    border-color: var(--primary);
+    background: rgba(91,227,194,.10);
+  }
+  .place.locked {
+    opacity: .55; cursor: not-allowed;
+    border-style: dashed;
+  }
+  .place.locked::before {
+    content: '🔒';
+    position: absolute; top: 8px; right: 8px;
+    font-size: 14px;
+  }
+  .place-req {
+    font-size: 10px; color: var(--text-3);
+    margin-top: 4px;
+  }
   .place.locked:hover { transform: none; }
   .place.active {
     border-color: var(--primary);
@@ -219,131 +258,233 @@
   .tag.weather-晴{color:#ffd166;} .tag.weather-雨{color:var(--primary-2);}
   .tag.weather-雾{color:#cfd6e4;} .tag.weather-雪{color:#e0eaff;}
 
-  /* ---------- 右侧浮按钮 ---------- */
-  .right-stack {
-    position: absolute; right: 16px; top: 16px;
-    display: flex; flex-direction: column; gap: 8px;
+  /* ---------- FAB 圆形按钮 + 弹出菜单 ---------- */
+  .fab {
+    position: fixed; right: 16px; bottom: 200px;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-2));
+    color: #06161e; border: none; cursor: pointer;
+    font-size: 24px; font-weight: 800;
+    box-shadow: 0 8px 24px rgba(91,227,194,.4);
+    z-index: 7;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .15s;
   }
-  .side-btn {
-    width: 80px; padding: 10px 0; text-align: center;
-    background: var(--surface);
+  .fab:active { transform: scale(.92); }
+  .fab-menu {
+    position: fixed; right: 16px; bottom: 264px;
+    display: flex; flex-direction: column-reverse; gap: 6px;
+    z-index: 6;
+    opacity: 0; transform: translateY(20px) scale(.9);
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+  }
+  .fab-menu.open {
+    opacity: 1; transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+  .fab-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    background: rgba(15, 28, 50, .92);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-pill);
+    color: var(--text);
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 12px rgba(0,0,0,.3);
+    transition: background .15s, transform .15s;
+    min-width: 96px;
+  }
+  .fab-item:active { background: rgba(91,227,194,.18); transform: scale(.97); }
+  .fab-item .ico { font-size: 16px; }
+  .fab-item.fab-danger { color: var(--danger); }
+  .fab-divider {
+    height: 1px; background: var(--border);
+    margin: 4px 8px;
+  }
+  .fab-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,.4);
+    z-index: 5; opacity: 0; pointer-events: none;
+    transition: opacity .2s;
+  }
+  .fab-backdrop.show { opacity: 1; pointer-events: auto; }
+
+  /* ---------- 折叠式统计抽屉 ---------- */
+  .stats-drawer {
+    position: fixed; left: 12px; bottom: 280px;
+    background: rgba(15, 28, 50, .88);
     border: 1px solid var(--border);
     border-radius: var(--r-md);
-    cursor: pointer; transition: all .15s;
-    font-size: var(--fs-sm); color: var(--text);
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
+    z-index: 4;
+    max-width: calc(100vw - 80px);
   }
-  .side-btn:hover {
-    background: rgba(255,255,255,.10);
-    transform: translateY(-2px);
-    border-color: var(--border-strong);
+  .stats-drawer summary {
+    list-style: none;
+    padding: 6px 12px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text-2);
+    user-select: none;
   }
-  .side-btn:active { transform: translateY(0); }
-  .side-btn .ico {
-    font-size: 22px; display: block; margin-bottom: 2px;
-    line-height: 1;
+  .stats-drawer summary::-webkit-details-marker { display: none; }
+  .stats-drawer summary .ico { font-size: 14px; }
+  .stats-drawer summary .chev { margin-left: auto; transition: transform .2s; }
+  .stats-drawer[open] summary .chev { transform: rotate(180deg); }
+  .stats-drawer .stats-mini {
+    padding: 8px 12px 10px;
+    border-top: 1px solid var(--border);
+    grid-template-columns: repeat(3, auto);
+    gap: 4px 14px;
+    font-size: 11px;
+    display: grid;
   }
 
-  /* ---------- 底部控制区 ---------- */
+  /* ---------- 底部控制区：精简（鱼饵横滑 + 力度 + 抛杆） ---------- */
   .controls {
-    background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.35));
+    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.5));
     border-top: 1px solid var(--border);
-    display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.6fr) minmax(0, 1fr);
-    gap: 20px;
-    padding: 14px 22px;
-    backdrop-filter: blur(8px);
+    padding: 8px 14px 12px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex; flex-direction: column; gap: 8px;
   }
-  .col h5 {
-    font-size: var(--fs-xs);
-    color: var(--text-3);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 10px;
-    font-weight: 600;
+
+  /* 鱼饵：横向滚动 */
+  .bait-row {
+    display: flex; gap: 6px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding: 2px 2px 4px;
   }
-  .bait-grid {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
-  }
+  .bait-row::-webkit-scrollbar { display: none; }
   .bait {
+    flex: 0 0 auto;
+    min-width: 56px;
     border: 1px solid var(--border);
     border-radius: var(--r-md);
-    padding: 10px 6px;
+    padding: 6px 8px;
     cursor: pointer;
     text-align: center;
-    font-size: var(--fs-sm);
+    font-size: 11px;
     background: rgba(255,255,255,.03);
     transition: all .15s;
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    scroll-snap-align: start;
   }
   .bait:hover {
     background: rgba(255,255,255,.08);
     border-color: var(--border-strong);
-    transform: translateY(-1px);
   }
   .bait.active {
     border-color: var(--accent);
-    background: rgba(255, 209, 102, .10);
+    background: rgba(255, 209, 102, .12);
     box-shadow: 0 0 0 1px var(--accent) inset;
   }
   .bait.disabled { opacity: .35; cursor: not-allowed; }
-  .bait .emoji { font-size: 22px; line-height: 1; }
-  .bait .nm { font-weight: 700; color: var(--text); }
+  .bait .emoji { font-size: 18px; line-height: 1; }
+  .bait .nm { font-weight: 700; color: var(--text); font-size: 10px; }
   .bait .cnt {
-    font-size: var(--fs-xs); color: var(--text-3);
+    font-size: 9px; color: var(--text-3);
     font-variant-numeric: tabular-nums;
   }
 
-  .action-grid {
-    display: grid;
-    grid-template-columns: 1fr auto auto;
-    gap: 14px;
-    align-items: center;
+  /* 力度：-  +  数值 */
+  .power-row {
+    display: flex; align-items: center; gap: 8px;
   }
-  .cast-power { min-width: 0; }
-  .cast-power input[type=range] {
-    width: 100%; height: 4px;
-    background: rgba(255,255,255,.1);
+  .power-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.05);
+    border: 1px solid var(--border);
+    color: var(--primary);
+    font-size: 18px; font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s, transform .1s;
+  }
+  .power-btn:active { background: rgba(91,227,194,.18); transform: scale(.92); }
+  .power-bar {
+    flex: 1; position: relative;
+    height: 8px;
+    background: rgba(255,255,255,.08);
     border-radius: var(--r-pill);
+    overflow: hidden;
+  }
+  .power-fill {
+    position: absolute; top: 0; left: 0; bottom: 0;
+    width: 60%;
+    background: linear-gradient(90deg, var(--primary-2), var(--accent));
+    border-radius: var(--r-pill);
+    transition: width .15s;
+  }
+  .power-bar input[type=range] {
+    position: absolute; inset: -6px 0;
+    width: 100%; height: 20px;
+    margin: 0; padding: 0;
+    background: transparent;
     -webkit-appearance: none; appearance: none;
     outline: none;
-  }
-  .cast-power input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none;
-    width: 16px; height: 16px;
-    border-radius: 50%;
-    background: var(--primary);
+    opacity: 0;
     cursor: pointer;
-    box-shadow: 0 0 0 4px rgba(91,227,194,.15);
   }
-  .cast-power input[type=range]::-moz-range-thumb {
-    width: 16px; height: 16px;
-    border-radius: 50%;
-    background: var(--primary);
-    cursor: pointer; border: none;
-  }
-  .cast-power small {
-    display: block;
-    color: var(--text-2);
-    font-size: var(--fs-sm);
-    margin-top: 6px;
+  .power-val {
+    font-size: 12px; font-weight: 700; color: var(--accent);
+    min-width: 28px; text-align: right;
     font-variant-numeric: tabular-nums;
   }
-  .cast-power small b { color: var(--accent); font-weight: 700; }
 
+  /* 抛杆 + 收线 行 */
+  .cast-row {
+    display: flex; gap: 8px; align-items: center;
+  }
   .big-cast {
-    font-size: var(--fs-lg);
-    padding: 14px 24px;
-    border-radius: var(--r-md);
+    flex: 1;
+    font-size: 16px;
+    padding: 12px 20px;
+    border-radius: var(--r-pill);
     background: linear-gradient(135deg, #ffb45e, #ff7a59);
     color: #2c1206; border: none; cursor: pointer; font-weight: 800;
-    box-shadow: 0 8px 24px rgba(255,140,80,.35);
+    box-shadow: 0 6px 18px rgba(255,140,80,.4);
     transition: transform .1s, box-shadow .15s;
     white-space: nowrap;
+    letter-spacing: 1px;
+    position: relative;
   }
-  .big-cast:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(255,140,80,.45); }
-  .big-cast:active { transform: translateY(0); }
-  .big-cast:disabled { filter: grayscale(.6); opacity:.6; cursor:not-allowed; transform:none; box-shadow: none; }
+  .big-cast:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(255,140,80,.5); }
+  .big-cast:active { transform: translateY(0) scale(.97); }
+  .big-cast:disabled { filter: grayscale(.6); opacity:.55; cursor:not-allowed; transform:none; box-shadow: none; }
+  .btn-reel {
+    padding: 12px 18px;
+    border-radius: var(--r-pill);
+    background: rgba(91,227,194,.15);
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background .15s;
+    white-space: nowrap;
+  }
+  .btn-reel:active { background: rgba(91,227,194,.28); }
+  .btn-reel:disabled { opacity:.35; cursor:not-allowed; }
+
+  /* 抛杆 cooldown 圆环 */
+  .cast-ring {
+    position: fixed; right: 12px; bottom: 144px;
+    width: 60px; height: 60px;
+    z-index: 6;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .15s;
+  }
+  .cast-ring.show { opacity: 1; }
+  #cast-ring-fill { transition: stroke-dashoffset .15s linear; }
 
   /* ---------- 统计区 ---------- */
   .stats-mini {
@@ -354,115 +495,33 @@
     align-content: center;
   }
   .stats-mini > span { color: var(--text-3); font-size: var(--fs-sm); }
-  /* ---------- 响应式（移动优先） ---------- */
-  /* 平板横屏 */
-  @media (max-width: 900px) {
-    .left-panel { width: 200px; }
-    .controls { grid-template-columns: 1fr 1fr; }
-    .side-btn { width: 70px; }
+  /* ---------- 响应式：mobile 优先，桌面微调 ---------- */
+  /* 平板横屏：抽屉稍窄，控制区 padding 稍大 */
+  @media (min-width: 720px) {
+    .hud { padding: 10px 22px 8px; }
+    .hud-row { gap: 10px; }
+    .chip { padding: 6px 12px; font-size: var(--fs-md); }
+    .hud-secondary .chip { font-size: var(--fs-md); padding: 6px 12px; }
+    .controls { padding: 10px 22px 14px; }
+    .bait { min-width: 64px; padding: 8px 10px; }
+    .bait .emoji { font-size: 22px; }
+    .bait .nm { font-size: 11px; }
+    .bait .cnt { font-size: 10px; }
+    .left-panel { width: 360px; }
   }
-  /* 手机横屏 / 折叠屏 */
-  @media (max-width: 720px) {
-    body { grid-template-rows: 48px 1fr auto; }
-    .hud { padding: 0 10px; }
-    .hud .left, .hud .right { gap: 6px; }
-    .title { font-size: 14px; letter-spacing: 1px; }
-    .chip { font-size: 11px; padding: 4px 7px; }
-    .chip:nth-child(2) { display: none; }       /* 隐藏经验条（HUD 紧凑） */
-    .left-panel { display: none; width: 80vw; max-width: 320px; top: 48px; bottom: auto; left: 0;
-                  transform: translateX(-100%); transition: transform .22s ease; }
-    .left-panel.open { display: block; transform: translateX(0); }
-    .right-stack { right: 6px; top: 60px; gap: 6px; }
-    .side-btn { width: 56px; padding: 6px 0; font-size: 11px; }
-    .side-btn .ico { font-size: 16px; }
-    .controls { grid-template-columns: 1fr; padding: 8px 10px; gap: 8px; }
-    .controls > .col:last-child { display: none; }   /* 小屏隐藏"本局"统计，省字号 */
-    .big-cast { font-size: 16px; padding: 14px 20px; }
-    .bait-grid { grid-template-columns: repeat(5, 1fr); }
-    .bait .emoji { font-size: 20px; }
-  }
-  /* 手机竖屏 */
-  @media (max-width: 480px) {
-    .hud .right .chip:not(.toggle-stat) { display: none; }
-    .hud .right .toggle-stat { display: inline-flex !important; }   /* 由 JS 在 <420 才显示 */
-    .controls {
-      grid-template-columns: 1fr;
-      padding: 10px 14px 88px;          /* 底部留 88px 给 FAB */
-      gap: 6px;
-    }
-    .col h5 { margin-bottom: 6px; font-size: 10px; }
-    .bait-grid { grid-template-columns: repeat(5, 1fr); gap: 6px; }
-    .bait { padding: 6px 2px; }
-    .bait .emoji { font-size: 18px; }
-    .bait .nm { font-size: 10px; }
-    .bait .cnt { font-size: 9px; }
-    .action-grid {
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-    }
-    .cast-power small { display: none; }
-    /* mobile FAB 模式：抛杆按钮从 .controls 容器里抽出来浮在右下 */
-    .controls .big-cast { display: none; }
-    body > .big-cast {
-      /* FAB 化：固定在右下角 */
-      position: fixed;
-      bottom: 14px;
-      right: 14px;
-      z-index: 30;
-      width: 64px; height: 64px;
-      padding: 0;
-      border-radius: 50%;
-      font-size: 28px;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 8px 24px rgba(255,140,80,.5), 0 0 0 4px rgba(255,140,80,.15);
-      animation: fabPulse 2.4s ease-in-out infinite;
-    }
-    @keyframes fabPulse {
-      0%, 100% { box-shadow: 0 8px 24px rgba(255,140,80,.5), 0 0 0 4px rgba(255,140,80,.15); }
-      50%      { box-shadow: 0 8px 24px rgba(255,140,80,.5), 0 0 0 10px rgba(255,140,80,.05); }
-    }
-    .big-cast:hover { transform: translateY(-3px) scale(1.05); }
-    /* 禁用态：冷却中（鱼试探 / 等待收线） */
-    .big-cast:disabled {
-      animation: fabCooldown 1.4s linear infinite;
-      filter: none;
-      opacity: 1;
-      background: linear-gradient(135deg, #4a4338, #5a4a3a);
-      color: rgba(255, 210, 138, .55);
-      box-shadow: 0 4px 12px rgba(0,0,0,.4);
-    }
-    @keyframes fabCooldown {
-      0%   { box-shadow: 0 0 0 0   rgba(255, 210, 138, .35) inset; }
-      100% { box-shadow: 0 0 0 50px rgba(255, 210, 138,  0)  inset; }
-    }
-    .big-cast:disabled::after {
-      content: "⏳";
-      position: absolute;
-      font-size: 12px;
-      bottom: -16px; left: 50%;
-      transform: translateX(-50%);
-      opacity: .7;
-      animation: spin 2s linear infinite;
-    }
-    @keyframes spin {
-      to { transform: translateX(-50%) rotate(360deg); }
-    }
-    /* 收线按钮：与 FAB 配套浮起 */
-    #reel {
-      position: fixed;
-      bottom: 22px;
-      right: 90px;
-      z-index: 30;
-      padding: 12px 18px;
-      border-radius: 999px;
-      box-shadow: 0 6px 16px rgba(0,0,0,.4);
-    }
-    .modal { width: 96vw; max-height: 92vh; }
+  /* 桌面：FAB 切回侧边按钮，HUD 顶栏平铺 */
+  @media (min-width: 1024px) {
+    .fab, .fab-menu, .fab-backdrop, .cast-ring { display: none !important; }
+    .controls { flex-direction: row; align-items: center; }
+    .bait-row { flex: 1; }
+    .power-row { flex: 0 0 220px; }
+    .cast-row { flex: 0 0 auto; }
+    .big-cast { flex: 0 0 auto; min-width: 140px; }
   }
   /* 极小屏（折叠副屏） */
   @media (max-width: 360px) {
-    .bait-grid { grid-template-columns: repeat(3, 1fr); }
-    .bait .nm { font-size: 11px; }
+    .bait { min-width: 50px; }
+    .stats-drawer { bottom: 264px; }
   }
 
   /* ---------- 新手引导 ---------- */
@@ -628,23 +687,20 @@
 </head>
 <body>
 
-  <!-- 顶部 -->
+  <!-- 顶部 HUD：紧凑两行 -->
   <div class="hud">
-    <div class="left">
+    <div class="hud-row hud-primary">
       <div class="title">🎣 湖畔垂钓</div>
-      <div class="chip">💰 <b id="hud-money">0</b> 金币</div>
-      <div class="chip">Lv.<b id="hud-level">1</b>
+      <div class="chip chip-money">💰 <b id="hud-money">0</b></div>
+      <div class="chip chip-level">Lv.<b id="hud-level">1</b>
         <div class="xp-bar"><i id="hud-xp"></i></div>
       </div>
-      <div class="chip" id="hud-weather">☀ 晴</div>
     </div>
-    <div class="right">
-      <div class="chip">📍 <b id="hud-place">青石湖</b></div>
-      <div class="chip">⏱ <b id="hud-time">清晨</b></div>
-      <button class="btn" id="btn-save">📤 导出</button>
-      <button class="btn" id="btn-load">📥 导入</button>
-      <button class="btn" id="btn-slots">📚 存档</button>
-      <button class="btn" id="btn-reset">♻ 重开</button>
+    <div class="hud-row hud-secondary">
+      <div class="chip chip-place">📍 <b id="hud-place">青石湖</b></div>
+      <div class="chip chip-weather" id="hud-weather">☀ 晴</div>
+      <div class="chip chip-time">⏱ <b id="hud-time">清晨</b></div>
+      <button class="chip chip-menu" id="btn-menu" aria-label="更多">⋯</button>
     </div>
   </div>
 
@@ -655,45 +711,71 @@
     <div class="hint" id="hint">选择地点与鱼饵，按下「抛竿」开始 🎣</div>
   </div>
 
-  <!-- 底部 -->
+  <!-- 底部：精简控制条（鱼饵 + 力度 + FAB） -->
   <div class="controls">
-    <div class="col">
-      <h5>鱼饵</h5>
-      <div class="bait-grid" id="bait-grid"></div>
-    </div>
-    <div class="col">
-      <h5>行动</h5>
-      <div class="action-grid">
-        <div class="cast-power">
-          <input type="range" id="power" min="0" max="100" value="60"/>
-          <small>力度：<b id="power-val">60</b>（影响上鱼距离与稀有度加成）</small>
-        </div>
-        <button class="big-cast" id="cast">🎣 抛竿</button>
-        <button class="btn" id="reel" disabled>↩ 收线</button>
+    <!-- 鱼饵横滑 -->
+    <div class="bait-row" id="bait-row"></div>
+
+    <!-- 力度调整 -->
+    <div class="power-row">
+      <button class="power-btn" id="power-down" aria-label="减小力度">－</button>
+      <div class="power-bar">
+        <div class="power-fill" id="power-fill"></div>
+        <input type="range" id="power" min="0" max="100" value="60"/>
       </div>
+      <button class="power-btn" id="power-up" aria-label="加大力度">＋</button>
+      <span class="power-val" id="power-val">60</span>
     </div>
-    <div class="col">
-      <h5>本局</h5>
-      <div class="stats-mini">
-        <span>捕获</span><b id="stat-catch">0</b>
-        <span>最重</span><b id="stat-heaviest">—</b>
-        <span>总收入</span><b id="stat-earn">0</b>
-        <span>出竿</span><b id="stat-cast">0</b>
-        <span>逃跑</span><b id="stat-escape">0</b>
-        <span>命中率</span><b id="stat-hit">—</b>
-      </div>
+
+    <!-- 抛杆 + 收线 -->
+    <div class="cast-row">
+      <button class="big-cast" id="cast">🎣 抛竿</button>
+      <button class="btn-reel" id="reel" disabled>↩ 收线</button>
     </div>
   </div>
 
-  <!-- 右侧浮按钮 -->
-  <div class="right-stack">
-    <div class="side-btn" data-modo="places"><span class="ico">📍</span>地点</div>
-    <div class="side-btn" data-modo="logs"><span class="ico">📜</span>日志</div>
-    <div class="side-btn" data-modo="codex"><span class="ico">📖</span>图鉴</div>
-    <div class="side-btn" data-modo="shop"><span class="ico">🛒</span>商店</div>
-    <div class="side-btn" data-modo="achv"><span class="ico">🏅</span>成就</div>
-    <div class="side-btn" data-modo="help"><span class="ico">❓</span>玩法</div>
+  <!-- FAB：抛杆 cooldown 进度环 -->
+  <svg class="cast-ring" id="cast-ring" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="4"/>
+    <circle id="cast-ring-fill" cx="50" cy="50" r="46" fill="none" stroke="var(--primary)" stroke-width="4"
+            stroke-dasharray="289" stroke-dashoffset="289" transform="rotate(-90 50 50)" stroke-linecap="round"/>
+  </svg>
+
+  <!-- 浮动：收起式菜单（替代原右侧 6 按钮） -->
+  <button class="fab" id="btn-fab" aria-label="打开菜单">⋯</button>
+  <div class="fab-menu" id="fab-menu">
+    <button class="fab-item" data-modo="places"><span class="ico">📍</span><span>地点</span></button>
+    <button class="fab-item" data-modo="logs"><span class="ico">📜</span><span>日志</span></button>
+    <button class="fab-item" data-modo="codex"><span class="ico">📖</span><span>图鉴</span></button>
+    <button class="fab-item" data-modo="shop"><span class="ico">🛒</span><span>商店</span></button>
+    <button class="fab-item" data-modo="achv"><span class="ico">🏅</span><span>成就</span></button>
+    <button class="fab-item" data-modo="help"><span class="ico">❓</span><span>玩法</span></button>
+    <div class="fab-divider"></div>
+    <button class="fab-item" id="fab-save"><span class="ico">📤</span><span>导出</span></button>
+    <button class="fab-item" id="fab-load"><span class="ico">📥</span><span>导入</span></button>
+    <button class="fab-item" id="fab-slots"><span class="ico">📚</span><span>存档</span></button>
+    <button class="fab-item fab-danger" id="fab-reset"><span class="ico">♻</span><span>重开</span></button>
   </div>
+
+  <!-- 折叠式统计抽屉 -->
+  <details class="stats-drawer" id="stats-drawer">
+    <summary>
+      <span class="ico">📊</span>
+      <span>本局统计</span>
+      <span class="chev">▾</span>
+    </summary>
+    <div class="stats-mini">
+      <span>捕获</span><b id="stat-catch">0</b>
+      <span>最重</span><b id="stat-heaviest">—</b>
+      <span>总收入</span><b id="stat-earn">0</b>
+      <span>出竿</span><b id="stat-cast">0</b>
+      <span>逃跑</span><b id="stat-escape">0</b>
+      <span>命中率</span><b id="stat-hit">—</b>
+    </div>
+  </details>
+
+  <!-- 左侧抽屉背景 -->
+  <div class="place-backdrop" id="place-backdrop"></div>
 
   <!-- 左侧：地点 -->
   <div class="panel left-panel">

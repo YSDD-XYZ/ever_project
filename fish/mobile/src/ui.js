@@ -46,7 +46,7 @@ function renderPlaces(){
 }
 
 function renderBaits(){
-  const grid = $('bait-grid'); grid.innerHTML='';
+  const grid = $('bait-row'); if (!grid) return; grid.innerHTML='';
   BAITS.forEach(b => {
     const cnt = state.baits[b.id]||0;
     const cls = 'bait' + (state._bait===b.id?' active':'') + (cnt<=0?' disabled':'');
@@ -56,6 +56,7 @@ function renderBaits(){
       save();
       renderBaits();
       window.dispatchEvent(new CustomEvent('game:bait-changed'));
+      if (navigator.vibrate) navigator.vibrate(8);
     }},
       el('div',{class:'emoji'},b.emj),
       el('div',{class:'nm'}, b.name),
@@ -284,18 +285,24 @@ async function importSaveCode(code) {
 /* ==========================================================
    移动版：地点抽屉
    ========================================================== */
-function togglePlacesDrawer(){
+function togglePlacesDrawer(forceClose){
   const el = document.querySelector('.left-panel');
+  const bd = document.querySelector('.place-backdrop');
   if (!el) return;
-  el.classList.toggle('open');
-  if (el.classList.contains('open')){
-    el.style.display = 'block';
-    requestAnimationFrame(()=> el.style.transform = 'translateX(0)');
+  if (forceClose) {
+    el.classList.remove('open');
   } else {
-    el.style.transform = 'translateX(-100%)';
-    setTimeout(()=> { if (!el.classList.contains('open')) el.style.display='none'; }, 220);
+    el.classList.toggle('open');
   }
+  const isOpen = el.classList.contains('open');
+  bd?.classList.toggle('show', isOpen);
+  if (navigator.vibrate) navigator.vibrate(8);
 }
+
+// 关闭抽屉：点击半透明背景
+document.querySelector('.place-backdrop')?.addEventListener('click', () => {
+  togglePlacesDrawer(true);
+});
 
 // ---- 多存档槽模态 ----
 function fmtTime(t) {
