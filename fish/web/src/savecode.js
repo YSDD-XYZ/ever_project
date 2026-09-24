@@ -111,7 +111,7 @@ export async function decodeSaveCode(code) {
   }
   let json;
   try {
-    json = new TextDecoder('decode', { fatal: true }).decode(jsonBytes);
+    json = new TextDecoder('utf-8', { fatal: true }).decode(jsonBytes);
   } catch (e) {
     throw new Error('存档码内容不是合法 UTF-8');
   }

@@ -83,6 +83,8 @@ function applyImportedState(data) {
   const fixed = validateState({ ...data, _bait: data._bait ?? 'bread' });
   if (!fixed) throw new Error('存档字段修复后仍无效');
   state = fixed;
+  // 持久化到 localStorage，避免 reload 丢失
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(fixed)); } catch (_) {}
   toast('存档已导入 ✅');
 }
 

@@ -178,6 +178,8 @@ $('btn-slots')?.addEventListener('click', () => showSlots());
 $('btn-reset').addEventListener('click', () => {
   if (confirm('确定要重新开始吗？所有进度会丢失。')) {
     resetState();
+    // 关闭可能打开的模态（防止显示过期的存档码等）
+    document.querySelectorAll('.modal-mask.show').forEach(m => m.remove());
     renderAll();
   }
 });
