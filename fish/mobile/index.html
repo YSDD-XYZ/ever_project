@@ -188,6 +188,8 @@
     transform: translateX(2px);
     border-color: var(--border-strong);
   }
+  .place.locked { opacity: .55; cursor: not-allowed; }
+  .place.locked:hover { transform: none; }
   .place.active {
     border-color: var(--primary);
     background: linear-gradient(180deg, rgba(91,227,194,.08), rgba(255,255,255,.02));

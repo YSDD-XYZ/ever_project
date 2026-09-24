@@ -1,7 +1,7 @@
 // ui.js —— DOM 渲染：HUD / 地点 / 鱼饵 / 模态框（图鉴/商店/成就/日志/帮助/捕获）
 import { state } from './state.js';
 import { $, el, clamp, toast } from './util.js';
-import { FISH, BAITS, PLACES, SHOP } from './data.js';
+import { FISH, BAITS, PLACES, SHOP, ACHIEVEMENTS } from './data.js';
 
 function renderHUD(){
   $('hud-money').textContent = state.money;
@@ -74,6 +74,10 @@ function openModal(title, builder){
 function closeModal(){ $('modal-mask').classList.remove('show'); }
 $('modal-close').addEventListener('click', closeModal);
 $('modal-mask').addEventListener('click', e => { if (e.target.id==='modal-mask') closeModal(); });
+// ESC 关模态
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && $('modal-mask').classList.contains('show')) closeModal();
+});
 
 function showCodex(){
   openModal('鱼图鉴 📖', body => {
