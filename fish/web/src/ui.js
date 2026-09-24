@@ -1,7 +1,8 @@
-// ui.js —— DOM 渲染：HUD / 地点 / 鱼饵 / 模态框（图鉴/商店/成就/日志/帮助/捕获）
-import { state } from './state.js';
+// ui.js —— DOM 渲染：HUD / 地点 / 鱼饵 / 模态框（图鉴/商店/成就/日志/帮助/捕获/存档码）
+import { state, applyImportedState } from './state.js';
 import { $, el, clamp, toast } from './util.js';
 import { FISH, BAITS, PLACES, SHOP, ACHIEVEMENTS } from './data.js';
+import { encodeSaveCode, decodeSaveCode, looksLikeSaveCode } from './savecode.js';
 
 function renderHUD(){
   $('hud-money').textContent = state.money;
@@ -219,5 +220,54 @@ function showCatchModal(f, weight, gain){
    成就检测
    ========================================================== */
 
+// ---- 存档码模态 ----
+let _saveCodeCache = null;     // 当前会话生成的存档码
+async function showSaveCode() {
+  let code;
+  try {
+    code = await encodeSaveCode(state);
+  } catch (e) {
+    code = '⚠️ 生成失败：' + (e.message || e);
+  }
+  _saveCodeCache = code;
+  openModal('导出存档码 🔑', body => {
+    const intro = el('p', { style:'color:var(--text-2);font-size:13px;margin-bottom:14px;line-height:1.6;' },
+      '复制下面这串字符，妥善保存。下次想恢复存档时，打开此页面，输入或粘贴这段字符串即可。');
+    const wrap = el('div', { style:'position:relative;background:rgba(0,0,0,.3);padding:14px;border-radius:var(--r-md);border:1px solid var(--border);' });
+    const ta = el('textarea', { readonly: 'readonly', style:'width:100%;min-height:84px;background:transparent;color:var(--primary);font-family:ui-monospace,Menlo,monospace;font-size:11px;line-height:1.5;letter-spacing:.5px;word-break:break-all;resize:vertical;border:0;outline:0;background:transparent;color:var(--primary);' }, code);
+    ta.id = 'save-code-text';
+    const copyBtn = el('button', { class:'btn primary', style:'position:absolute;top:10px;right:10px;padding:6px 12px;font-size:12px;' }, '📋 复制');
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(code);
+        copyBtn.textContent = '✓ 已复制';
+        setTimeout(() => { copyBtn.textContent = '📋 复制'; }, 1500);
+      } catch (e) {
+        ta.select();
+        document.execCommand('copy');
+        copyBtn.textContent = '✓ 已复制';
+        setTimeout(() => { copyBtn.textContent = '📋 复制'; }, 1500);
+      }
+    });
+    wrap.append(ta, copyBtn);
+    const stats = el('div', { style:'margin-top:10px;font-size:11px;color:var(--text-3);' },
+      `长度 ${code.length} 字符 · 已压缩 · 自带 CRC32 校验`);
+    body.append(intro, wrap, stats);
+  });
+}
+async function importSaveCode(code) {
+  try {
+    const data = await decodeSaveCode(code);
+    applyImportedState(data);
+    renderHUD(); renderPlaces(); renderBaits();
+    // 触发监听事件，让 main.js 的 state-changed 监听器也跑
+    window.dispatchEvent(new CustomEvent('game:state-changed'));
+    window.dispatchEvent(new CustomEvent('game:bait-changed'));
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message || String(e) };
+  }
+}
 
-export { renderHUD, renderPlaces, renderBaits, openModal, closeModal, showCodex, showShop, showAchv, showLogs, showHelp, showCatchModal, buyItem };
+
+export { renderHUD, renderPlaces, renderBaits, openModal, closeModal, showCodex, showShop, showAchv, showLogs, showHelp, showCatchModal, showSaveCode, importSaveCode, buyItem };

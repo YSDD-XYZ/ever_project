@@ -59,6 +59,17 @@ function resetState() {
   toast('世界已重置');
 }
 
+// 用导入的存档对象（来自 savecode 解码）替换当前 state
+// 内部会发 game:state-changed 与 game:bait-changed 让 UI 同步
+function applyImportedState(data) {
+  if (!data || typeof data !== 'object') {
+    throw new Error('存档数据格式无效');
+  }
+  // 强制 _bait 重置为 bread（保证 UI 状态一致）
+  state = Object.assign(defaultState(), data, { _bait: 'bread' });
+  toast('存档已导入 ✅');
+}
+
 let state = load();
 
 // 浏览器策略：首次任意交互后再启动 AudioContext
@@ -72,4 +83,4 @@ function armAudio() {
   window.addEventListener(ev, armAudio, { once: true, capture: true })
 );
 
-export { state, defaultState, load, save, resetState, armAudio, SAVE_KEY };
+export { state, defaultState, load, save, resetState, armAudio, SAVE_KEY, applyImportedState };

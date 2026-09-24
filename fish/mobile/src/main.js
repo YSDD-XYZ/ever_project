@@ -1,6 +1,6 @@
 // main.js (mobile) —— 移动版入口
 // 与 web 版差异：注册 SW 离线、禁用 pinch-zoom 与 overscroll、点按代替 hover、移动端 toast 文案
-import { $, toast } from './util.js';
+import { $, el, toast } from './util.js';
 import { state, save, resetState, armAudio } from './state.js';
 import { audio } from './audio.js';
 import { scene } from './scene.js';
@@ -9,6 +9,8 @@ import {
   renderHUD, renderPlaces, renderBaits,
   showLogs, showCodex, showShop, showAchv, showHelp,
   togglePlacesDrawer,
+  showSaveCode, importSaveCode,
+  openModal, closeModal,
 } from './ui.js';
 
 // 注册 Service Worker（离线 / 安装到主屏）
@@ -170,13 +172,37 @@ window.addEventListener('game:bait-changed', () => {
 $('cast').addEventListener('click', cast);
 $('reel').addEventListener('click', reel);
 $('power').addEventListener('input', e => $('power-val').textContent = e.target.value);
-$('btn-save').addEventListener('click', save);
+$('btn-save').addEventListener('click', () => showSaveCode());
+$('btn-load').addEventListener('click', () => showImportDialog());
 $('btn-reset').addEventListener('click', () => {
   if (confirm('确定要重新开始吗？所有进度会丢失。')) {
     resetState();
     renderAll();
   }
 });
+
+// 导入弹窗
+function showImportDialog(){
+  openModal('导入存档码 📥', body => {
+    const intro = el('p', { style:'color:var(--text-2);font-size:13px;margin-bottom:12px;line-height:1.6;' },
+      '粘贴之前导出的存档码（以 LK1. 开头）。确认后会覆盖当前进度。');
+    const ta = el('textarea', { id:'import-code-text', placeholder:'LK1.<base64>.<crc32>', style:'width:100%;min-height:96px;background:rgba(0,0,0,.3);color:var(--primary);font-family:ui-monospace,Menlo,monospace;font-size:11px;line-height:1.5;letter-spacing:.5px;word-break:break-all;border:1px solid var(--border);border-radius:var(--r-md);padding:12px;resize:vertical;outline:0;' });
+    const errBox = el('div', { style:'color:var(--danger);font-size:12px;margin-top:8px;display:none;' });
+    const importBtn = el('button', { class:'btn primary', style:'width:100%;margin-top:12px;' }, '✅ 确认导入');
+    const cancelBtn = el('button', { class:'btn', style:'width:100%;margin-top:8px;' }, '取消');
+    importBtn.addEventListener('click', async () => {
+      errBox.style.display = 'none';
+      const code = ta.value.trim();
+      if (!code) { errBox.textContent = '请粘贴存档码'; errBox.style.display='block'; return; }
+      if (!confirm('导入会覆盖当前所有进度，确定继续？')) return;
+      const r = await importSaveCode(code);
+      if (!r.ok) { errBox.textContent = '❌ ' + r.error; errBox.style.display='block'; return; }
+      closeModal();
+    });
+    cancelBtn.addEventListener('click', closeModal);
+    body.append(intro, ta, errBox, importBtn, cancelBtn);
+  });
+}
 document.querySelectorAll('.side-btn').forEach(b => b.addEventListener('click', () => {
   const m = b.dataset.modo;
   if (m === 'places') togglePlacesDrawer();
