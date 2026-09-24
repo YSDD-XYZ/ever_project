@@ -175,7 +175,7 @@ function miniReelGame(power, weight, breakChance){
         captureFish(weight, 0.6);
       }
     }
-    hooked = null; if (fishEl) { fishEl.remove(); fishEl=null; }
+    hooked = null; if (fishEl) { fishEl.dispose && fishEl.dispose(); fishEl=null; }
     resetAfterAction();
     window.dispatchEvent(new CustomEvent('game:state-changed'));
     if (typeof renderHUD === 'function') renderHUD();

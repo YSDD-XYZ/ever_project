@@ -1,9 +1,16 @@
 // state.js —— 全局游戏状态的唯一来源
 // 注意：state 是模块作用域内的可变绑定；其他模块修改 state.* 属性即可
 //       如需整体重置，调 resetState()
+//
+// 存储键规则：
+//   web 与 mobile 在 HTML 里通过 <script> window.__storagePrefix = '...' 注入
+//   本模块用 `${PREFIX}_save_v1` 作为 localStorage key，自动隔离两端存档。
 
 import { toast } from './util.js';
 import { audio } from './audio.js';
+
+const STORAGE_PREFIX = (typeof window !== 'undefined' && window.__storagePrefix) || 'fishing';
+const SAVE_KEY = `${STORAGE_PREFIX}_save_v1`;
 
 function defaultState() {
   return {
@@ -33,19 +40,19 @@ function defaultState() {
 
 function load() {
   try {
-    const raw = localStorage.getItem('fishing_save_v1');
+    const raw = localStorage.getItem(SAVE_KEY);
     if (raw) return Object.assign(defaultState(), JSON.parse(raw));
   } catch (e) {}
   return defaultState();
 }
 
 function save() {
-  try { localStorage.setItem('fishing_save_v1', JSON.stringify(state)); } catch (e) {}
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
   toast('已保存 💾');
 }
 
 function resetState() {
-  localStorage.removeItem('fishing_save_v1');
+  localStorage.removeItem(SAVE_KEY);
   state = defaultState();
   state._bait = 'bread';
   save();
@@ -65,4 +72,4 @@ function armAudio() {
   window.addEventListener(ev, armAudio, { once: true, capture: true })
 );
 
-export { state, defaultState, load, save, resetState, armAudio };
+export { state, defaultState, load, save, resetState, armAudio, SAVE_KEY };
