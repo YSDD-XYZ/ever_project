@@ -43,16 +43,20 @@ jobs:
           const files = [
             'shared/state.js','shared/util.js','shared/data.js',
             'shared/audio.js','shared/game.js','shared/scene.js',
+            'shared/savecode.js','shared/slots.js','shared/validate.js',
             'web/src/main.js','web/src/ui.js',
             'mobile/src/main.js','mobile/src/ui.js',
           ];
           let ok = true;
           for (const f of files) {
             const src = fs.readFileSync(f,'utf8');
-            // 去掉 import / export 行，多行形式用 [\s\S]*?
+            // 去掉 import 行（单行 + 多行）
             const stripped = src
-              .replace(/^import[\s\S]*?from\s*['\"][^'\"]+['\"];?\s*$/gm, '')
-              .replace(/^export\s*\{[\s\S]*?\};?\s*$/gm, '');
+              .replace(/^import[\s\S]*?from\s*['"][^'"]+['"];?\s*$/gm, '')
+              // 去掉所有 export 语句：单行 export { ... } 与 export function/const/let
+              .replace(/^export\s*\{[\s\S]*?\};?\s*$/gm, '')
+              .replace(/^export\s+(default\s+)?(async\s+)?function\s/gm, '$2function ')
+              .replace(/^export\s+(default\s+)?(const|let|var)\s/gm, '$2 ');
             try {
               new Function('return (async()=>{' + stripped + '})')();
               console.log('  ok', f);
@@ -83,6 +87,8 @@ jobs:
             http://localhost:18000/src/state.js http://localhost:18000/src/util.js \
             http://localhost:18000/src/data.js http://localhost:18000/src/audio.js \
             http://localhost:18000/src/game.js http://localhost:18000/src/scene.js \
+            http://localhost:18000/src/savecode.js http://localhost:18000/src/slots.js \
+            http://localhost:18000/src/validate.js \
             http://localhost:18001/ http://localhost:18001/index.html \
             http://localhost:18001/vendor/three.module.min.js \
             http://localhost:18001/vendor/OrbitControls.js \
@@ -92,7 +98,9 @@ jobs:
             http://localhost:18001/src/main.js http://localhost:18001/src/ui.js \
             http://localhost:18001/src/state.js http://localhost:18001/src/util.js \
             http://localhost:18001/src/data.js http://localhost:18001/src/audio.js \
-            http://localhost:18001/src/game.js http://localhost:18001/src/scene.js; do
+            http://localhost:18001/src/game.js http://localhost:18001/src/scene.js \
+            http://localhost:18001/src/savecode.js http://localhost:18001/src/slots.js \
+            http://localhost:18001/src/validate.js ; do
             code=$(curl -s -o /dev/null -w "%{http_code}" "$url")
             if [ "$code" != "200" ] && [ "$code" != "301" ]; then
               echo "FAIL $code $url"

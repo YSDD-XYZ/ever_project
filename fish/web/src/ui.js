@@ -120,7 +120,14 @@ function showShop(){
         el('div', { class:'price' }, owned ? (equipped?'✨ 装备中':'✓ 已拥有') : ('💰 '+s.price)),
         owned
           ? (s.type==='rod' && !equipped
-              ? el('button',{class:'btn primary', onclick:()=>{state.equip=s.id; toast('装备 '+s.name); showShop(); save();}}, '装备')
+              ? el('button',{class:'btn primary', onclick:()=>{
+                  state.equip=s.id;
+                  save();
+                  toast('装备 '+s.name);
+                  showShop();
+                  renderHUD();
+                  window.dispatchEvent(new CustomEvent('game:state-changed'));
+                }}, '装备')
               : el('span',{style:'opacity:.5;'}, '✓'))
           : el('button', { class:'btn primary', onclick:()=>buyItem(s) }, '购买')
       );
