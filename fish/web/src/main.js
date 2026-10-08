@@ -48,7 +48,7 @@ if (_loadingEl){
 
 // 新手引导：第一次进入游戏时展示
 function runOnboarding(){
-  const ONB_KEY = 'fishing_onboarded_v1';
+  const ONB_KEY = (window.__storagePrefix || 'fishing') + '_onboarded_v1';
   if (localStorage.getItem(ONB_KEY)) return;
 
   const STEPS = [

@@ -37,7 +37,7 @@ armAudio();
 
 // UI 音效：click（移动端用 touchstart 也可以，但 click 在 tap 后触发，最稳）
 document.addEventListener('click', (e) => {
-  if (e.target.closest('button, .btn, .side-btn, .big-cast, .bait, .place, .codex-item, .shop-row')) {
+  if (e.target.closest('button, .btn, .side-btn, .cast-btn, .bait, .place, .codex-item, .shop-row')) {
     audio.click();
   }
 });
@@ -77,23 +77,23 @@ if (_loadingEl){
 
 // 新手引导：第一次进入游戏时展示
 function runOnboarding(){
-  const ONB_KEY = 'fishing_onboarded_v1';
+  const ONB_KEY = (window.__storagePrefix || 'fishing') + '_onboarded_v1';
   if (localStorage.getItem(ONB_KEY)) return;
 
   const STEPS = [
     {
       title: '选一个钓鱼地点',
-      desc:  '点击右下「📍 地点」按钮展开抽屉，里面列出了可用的钓鱼点。',
-      highlight: null,
+      desc:  '点击右上角⚙齿轮按钮打开菜单，选「📍 地点」展开抽屉，里面列出了可用的钓鱼点。',
+      highlight: '#btn-menu',
     },
     {
       title: '选择鱼饵',
-      desc:  '底部有 5 种鱼饵：面团、蚯蚓、玉米、河虾、亮片假饵。不同的鱼对鱼饵有偏好，左右横滑可看全部。',
+      desc:  '底部有 5 种鱼饵（🍞🪱🌽🦐✨）：点哪个用哪个，不同的鱼对鱼饵有偏好。',
       highlight: '#bait-row',
     },
     {
       title: '调整力度后抛竿',
-      desc:  '点击力度按钮循环（0→100），数字越大抛得越远、稀有鱼出现概率越高。点中央大圆按钮抛竿。',
+      desc:  '点右下圆形力度按钮循环（0→100），数字越大抛得越远、稀有鱼出现概率越高。点中央大圆按钮抛竿。',
       highlight: '#cast',
     },
     {

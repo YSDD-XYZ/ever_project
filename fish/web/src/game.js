@@ -301,8 +301,12 @@ function spawnFloatText(text, color){
 }
 function hintAt(text, ms=1200){
   const h = $('hint'); h.textContent = text;
-  h.style.opacity = 1;
-  setTimeout(()=> { h.textContent = '选择地点与鱼饵，按下「抛竿」开始 🎣'; }, ms);
+  h.style.opacity = '';  // 清除内联样式，让 CSS .show 生效
+  h.classList.add('show');
+  setTimeout(() => {
+    h.classList.remove('show');
+    h.textContent = '选择地点与鱼饵，按下「抛竿」开始 🎣';
+  }, ms);
 }
 
 function resetAfterAction(){
