@@ -213,11 +213,12 @@ function captureFish(weight, factor=1){
   state.totalEarn += gain;
   state.totalCatch++;
   if (weight > state.biggestKg) state.biggestKg = weight;
-  state.xp += Math.round(8 + weight*2);
-  // 升级：每次只升 1 级，xp 扣到下一级所需（最多连升 50 次防意外爆级）
+  // 升级曲线：每级需要 level*80 XP（30 条常见鱼 ≈ 5 级）
+  state.xp += Math.round(5 + weight*3);
+  // 升级：每次只升 1 级
   let up = 0;
-  while (state.xp >= state.level * 50 && up < 50) {
-    state.xp -= state.level * 50;
+  while (state.xp >= state.level * 80 && up < 50) {
+    state.xp -= state.level * 80;
     state.level++;
     up++;
     toast(`升级！Lv.${state.level} 🎉`);
@@ -227,6 +228,21 @@ function captureFish(weight, factor=1){
   if (['稀有','史诗','神秘'].includes(f.rarity)) state.totalRarity++;
   if (['传说','神秘'].includes(f.rarity)) state.legend++;
   if (factor >= 1) state.perfectReel++;
+  // 新增：成就追踪字段
+  if (state.time === '深夜') state.nightCatch = (state.nightCatch||0) + 1;
+  if (state.weather === '雨') state.rainCatch = (state.rainCatch||0) + 1;
+  // 季节限定鱼追踪（id 含 spring/summer/autumn/winter）
+  if (f.id.includes('spring-') || f.id.includes('summer-') || f.id.includes('autumn-') || f.id.includes('winter-')) {
+    state.seasonFish = (state.seasonFish||0) + 1;
+  }
+  // 记录用过的鱼饵
+  if (Array.isArray(state.usedBaits)) {
+    if (!state.usedBaits.includes(state._bait)) {
+      state.usedBaits.push(state._bait);
+    }
+  } else {
+    state.usedBaits = [state._bait];
+  }
   pushLog(`捕获 ${f.emj} ${f.name}（${weight.toFixed(2)}kg），获得 ${gain} 金币`);
   spawnFloatText('+'+gain+'💰','#ffe28a');
   checkAchievements();
@@ -273,6 +289,13 @@ function checkAchievements(){
     codexCount: Object.keys(state.codex).length,
     perfectReel: state.perfectReel,
   };
+  // —— 修正成就所需的动态字段 —— //
+  s.ownedRods = (s.owned || []).filter(id => /^rod-/.test(id)).length;
+  s.seasonFish = s.seasonFish || 0;
+  s.nightCatch = s.nightCatch || 0;
+  s.rainCatch = s.rainCatch || 0;
+  s.usedBaits = s.usedBaits || [];
+  s.noEscapeStreak = s.noEscapeStreak || 0;
   ACHIEVEMENTS.forEach(a => {
     if (state.achievements[a.id]) return;
     if (a.check(s)) {

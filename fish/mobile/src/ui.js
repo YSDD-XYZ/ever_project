@@ -1,7 +1,7 @@
 // ui.js —— DOM 渲染：HUD / 地点 / 鱼饵 / 模态框（图鉴/商店/成就/日志/帮助/捕获/存档码）
 import { state, applyImportedState, save } from './state.js';
 import { $, el, clamp, toast } from './util.js';
-import { FISH, BAITS, PLACES, SHOP, ACHIEVEMENTS } from './data.js';
+import { FISH, BAITS, PLACES, SHOP, ACHIEVEMENTS, DAILY_QUESTS, COLLECTION_TIERS } from './data.js';
 import { encodeSaveCode, decodeSaveCode, looksLikeSaveCode } from './savecode.js';
 import { listSlots, getSlotKey, renameSlot, deleteSlot, saveToNewSlot, importToSlot, defaultName } from './slots.js';
 
@@ -170,6 +170,41 @@ function showAchv(){
       list.append(it);
     });
     body.append(list);
+  });
+}
+
+function showQuests(){
+  openModal('每日任务 📋', body => {
+    const intro = el('p', { style:'color:var(--text-2);font-size:13px;margin-bottom:12px;line-height:1.6;' },
+      '每天刷新。完成获得金币奖励。');
+    const list = el('div', { class:'quest-list' });
+    // 计算今日累计（用 state 自带的字段）
+    const todayStat = {
+      totalCast: state.totalCast,
+      totalCatch: state.totalCatch,
+      perfectReel: state.perfectReel,
+      todayEarn: state.todayEarn || 0,
+      todayRare: state.todayRare || 0,
+    };
+    DAILY_QUESTS.forEach(q => {
+      const progress = Math.min(todayStat[q.target] || 0, q.goal);
+      const done = progress >= q.goal;
+      const pct = Math.min(100, (progress / q.goal) * 100);
+      const row = el('div', { class:'quest'+(done?' done':'') },
+        el('div', { class:'ico' }, done ? '✅' : '📌'),
+        el('div', { style:'flex:1;' },
+          el('div', { class:'nm' }, q.name + (done?' ✓':'')),
+          el('div', { class:'ds' }, q.desc),
+          el('div', { class:'quest-bar' },
+            el('div', { class:'quest-bar-fill', style:`width:${pct}%` }),
+          ),
+          el('div', { class:'quest-progress' }, `${progress} / ${q.goal}`),
+        ),
+        el('div', { class:'reward' }, '+'+q.reward+'💰'),
+      );
+      list.append(row);
+    });
+    body.append(intro, list);
   });
 }
 
@@ -470,4 +505,4 @@ function refreshSlotsList() {
 }
 
 
-export { renderHUD, renderPlaces, renderBaits, openModal, closeModal, showCodex, showShop, showAchv, showLogs, showHelp, showCatchModal, showSaveCode, importSaveCode, showSlots, togglePlacesDrawer, buyItem };
+export { renderHUD, renderPlaces, renderBaits, openModal, closeModal, showCodex, showShop, showAchv, showQuests, showLogs, showHelp, showCatchModal, showSaveCode, importSaveCode, showSlots, togglePlacesDrawer, buyItem };

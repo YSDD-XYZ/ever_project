@@ -46,11 +46,13 @@ export function defaultStateShape() {
     money: 80, level: 1, xp: 0,
     totalCatch: 0, totalCast: 0, totalEarn: 0, totalEscape: 0,
     biggestKg: 0, totalRarity: 0, legend: 0, perfectReel: 0,
-    baits: { bread: 5, worm: 3, corn: 2, shrimp: 1, lure: 1 },
+    baits: { bread: 5, worm: 3, corn: 2, shrimp: 1, lure: 1, bug: 0, dough: 0, live: 0 },
     owned: ['rod-basic'], equip: 'rod-basic',
     codex: {}, places: {}, log: [], achievements: {},
     placeId: 'pond', weather: '晴', time: '清晨',
     _bait: 'bread',  // 临时 UI 状态：当前选中的鱼饵
+    // 成就 / 任务追踪
+    nightCatch: 0, rainCatch: 0, usedBaits: [], noEscapeStreak: 0, seasonFish: 0,
   };
 }
 

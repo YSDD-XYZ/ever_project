@@ -7,7 +7,7 @@ import { scene } from './scene.js';
 import { cast, reel, pushLog } from './game.js';
 import {
   renderHUD, renderPlaces, renderBaits,
-  showLogs, showCodex, showShop, showAchv, showHelp,
+  showLogs, showCodex, showShop, showAchv, showQuests, showHelp,
   togglePlacesDrawer,
   showSaveCode, importSaveCode, showSlots, showCatchModal,
   openModal, closeModal,
@@ -217,6 +217,7 @@ document.querySelectorAll('#fab-menu .fab-item').forEach(b => b.addEventListener
   else if (m === 'codex') showCodex();
   else if (m === 'shop')  showShop();
   else if (m === 'achv')  showAchv();
+  else if (m === 'quests') showQuests();
   else if (m === 'help')  showHelp();
 }));
 // 点击 FAB 背景关闭菜单

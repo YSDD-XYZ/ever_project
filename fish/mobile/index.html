@@ -722,6 +722,36 @@
     letter-spacing: 2px;
   }
 
+  /* ---------- 任务模态 ---------- */
+  .quest-list { display: grid; gap: 10px; }
+  .quest {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    transition: all .15s;
+  }
+  .quest.done {
+    background: rgba(123,227,156,.1);
+    border-color: rgba(123,227,156,.3);
+  }
+  .quest .ico { font-size: 22px; }
+  .quest .nm { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .quest .ds { font-size: 11px; color: var(--text-2); line-height: 1.4; margin-bottom: 6px; }
+  .quest-bar {
+    height: 5px; background: rgba(255,255,255,.1);
+    border-radius: var(--r-pill); overflow: hidden;
+    margin-bottom: 4px;
+  }
+  .quest-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-2), var(--primary));
+    transition: width .3s;
+  }
+  .quest-progress { font-size: 10px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+  .quest .reward { color: var(--accent); font-weight: 700; font-size: 12px; white-space: nowrap; }
+
   /* ---------- 新手引导 ---------- */
   .onboard-mask {
     position: fixed; inset: 0; z-index: 90;
@@ -890,6 +920,7 @@
     <button class="fab-item" data-modo="codex"><span class="ico">📖</span><span>图鉴</span></button>
     <button class="fab-item" data-modo="shop"><span class="ico">🛒</span><span>商店</span></button>
     <button class="fab-item" data-modo="achv"><span class="ico">🏅</span><span>成就</span></button>
+    <button class="fab-item" data-modo="quests"><span class="ico">📋</span><span>任务</span></button>
     <button class="fab-item" data-modo="help"><span class="ico">❓</span><span>玩法</span></button>
     <div class="fab-divider"></div>
     <button class="fab-item" id="fab-save"><span class="ico">📤</span><span>导出</span></button>

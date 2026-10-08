@@ -37,6 +37,12 @@ function defaultState() {
     weather: '晴',
     time: '清晨',
     _bait: 'bread',  // 默认选中的鱼饵（首次玩不会卡在"请选鱼饵"）
+    // 新增：成就 / 任务追踪字段
+    nightCatch: 0,    // 深夜捕获数
+    rainCatch: 0,     // 雨天捕获数
+    usedBaits: [],    // 用过的鱼饵 id 列表（饵料大师成就）
+    noEscapeStreak: 0, // 连续不跑鱼次数
+    seasonFish: 0,    // 季节限定鱼捕获数
   };
 }
 
