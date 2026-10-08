@@ -128,16 +128,26 @@ const audio = (() => {
     o.start(t); o.stop(t+0.35);
   }
   // 捕获：上行音阶 + 水花
-  function caught(){
+  function caught(rarity='common'){
     if (!started) return;
     const c = ensure(); const t = c.currentTime;
-    [523, 784, 1047].forEach((freq, i) => {
-      const o = c.createOscillator(); o.type='triangle'; o.frequency.value=freq;
+    // 按 rarity 调音高：越稀有音越高
+    const baseFreq = { '常见': 523, '少见': 587, '稀有': 698, '史诗': 784, '神秘': 880, '传说': 1047 }[rarity] || 523;
+    [1, 1.5, 2].forEach((mult, i) => {
+      const o = c.createOscillator(); o.type='triangle'; o.frequency.value=baseFreq*mult;
       const g = c.createGain(); g.gain.value = 0;
       o.connect(g); g.connect(masterGain);
       env(g, t + i*0.08, 0.005, 0.04, 0.6, 0.2, cfg.sfx*0.45);
       o.start(t+i*0.08); o.stop(t+i*0.08+0.3);
     });
+    // 传说级加一个高音铃铛
+    if (rarity === '传说' || rarity === '神秘') {
+      const o = c.createOscillator(); o.type='sine'; o.frequency.value=baseFreq*3;
+      const g = c.createGain(); g.gain.value = 0;
+      o.connect(g); g.connect(masterGain);
+      env(g, t + 0.25, 0.001, 0.01, 0.5, 0.2, cfg.sfx*0.3);
+      o.start(t + 0.25); o.stop(t + 0.4);
+    }
     splash();
   }
   // BGM：海浪噪声 + 远端拨弦

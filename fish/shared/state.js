@@ -52,6 +52,8 @@ function defaultState() {
       todayEarn: 0,
       todayRare: 0,
     },
+    // 新手教学：已完成的引导步骤（0-6）
+    tutorial: 0,
   };
 }
 

@@ -55,6 +55,8 @@ export function defaultStateShape() {
     nightCatch: 0, rainCatch: 0, usedBaits: [], noEscapeStreak: 0, seasonFish: 0,
     // 每日任务（按日期分组）
     daily: { date:'', totalCast:0, totalCatch:0, perfectReel:0, todayEarn:0, todayRare:0 },
+    // 新手教学进度
+    tutorial: 0,
   };
 }
 

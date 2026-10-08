@@ -78,6 +78,14 @@ function tryBite(power){
       const fishSeason = { spring:'春', summer:'夏', autumn:'秋', winter:'冬' }[m[1]];
       if (fishSeason !== season) return false;
     }
+    // 天气影响：雨雾天鱼躲起来，只剩适应性强的鱼
+    if ((state.weather === '雨' || state.weather === '雾' || state.weather === '雪') &&
+        !f.weathers.includes(state.weather)) return false;
+    // 深夜影响：减少活跃鱼（仅 60% 鱼种可钓）
+    if (state.time === '深夜' && Math.random() < 0.4 &&
+        !['catfish','squid','anglerfish','electric-eel','sea-dragon','winter-cod','sturgeon','eel','lantern'].includes(f.id)) {
+      return false;
+    }
     return f.waters.includes(place.id) &&
       f.baits.includes(bait) &&
       f.weathers.includes(state.weather) &&
@@ -95,13 +103,25 @@ function tryBite(power){
 
   // 池子过滤
   const rarityOrder = ['常见','少见','稀有','史诗','神秘','传说'];
-  let pick = pool.filter(f=> f.rarity===rarityOrder[rarityTier]);
+  // 难度梯度：传说/神秘要求玩家达到一定等级
+  // - 传说：Lv.20+ + 星辉玉竿 + 至少 1 次完美收线
+  // - 神秘：Lv.10+ + 任一高级竿
+  // - 史诗：Lv.5+
+  const canLegend = state.level >= 20 && state.equip === 'rod-stellar' && state.perfectReel >= 1;
+  const canMystic = state.level >= 10 && ['rod-carbon','rod-magic','rod-glass','rod-stellar'].includes(state.equip);
+  const canEpic = state.level >= 5;
+  let pick = pool.filter(f => {
+    if (f.rarity === '传说') return canLegend;
+    if (f.rarity === '神秘') return canMystic;
+    if (f.rarity === '史诗') return canEpic;
+    return true;  // 常见/少见/稀有
+  });
   if (!pick.length) pick = pool;
   let fish = choice(pick);
 
-  // 传说几率强化
-  if (Math.random()*100 < getRodEffect('legBonus')) {
-    const leg = FISH.filter(f=> ['传说','神秘'].includes(f.rarity) && f.waters.includes(place.id));
+  // 传说几率强化（仅当 canLegend）
+  if (canLegend && Math.random()*100 < getRodEffect('legBonus')) {
+    const leg = FISH.filter(f => ['传说','神秘'].includes(f.rarity) && f.waters.includes(place.id) && (f.rarity !== '传说' || canLegend));
     if (leg.length) fish = choice(leg);
   }
 
@@ -282,7 +302,7 @@ function captureFish(weight, factor=1){
   save();
   window.dispatchEvent(new CustomEvent('game:state-changed'));
   // 启动 3D 捕获序列；动画结束后再弹模态框、解除按钮锁定
-  audio.caught();
+  audio.caught(f.rarity);
   casting = true;
   $('cast').disabled = true;
   $('reel').disabled = true;

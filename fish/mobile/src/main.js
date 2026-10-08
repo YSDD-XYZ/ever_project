@@ -85,36 +85,50 @@ function runOnboarding(){
   const ONB_KEY = (window.__storagePrefix || 'fishing') + '_onboarded_v1';
   if (localStorage.getItem(ONB_KEY)) return;
 
+  // 分级教程：每步独立功能解锁
+  // - 0: 未开始
+  // - 1: 已选地点（解锁抛杆）
+  // - 2: 已选鱼饵
+  // - 3: 已调力度
+  // - 4: 已抛竿
+  // - 5: 已收线
+  // - 6: 已完成教程
   const STEPS = [
     {
-      title: '选一个钓鱼地点',
+      title: '第 1 步：选一个钓鱼地点',
       desc:  '点击右上角⚙齿轮按钮打开菜单，选「📍 地点」展开抽屉，里面列出了可用的钓鱼点。',
       highlight: '#btn-menu',
+      unlock: 1,  // 解锁"能切地点"
     },
     {
-      title: '选择鱼饵',
-      desc:  '底部有 5 种鱼饵（🍞🪱🌽🦐✨）：点哪个用哪个，不同的鱼对鱼饵有偏好。',
+      title: '第 2 步：选择鱼饵',
+      desc:  '底部有 8 种鱼饵（🍞🪱🌽🦐✨🪲🥟🐟）：点哪个用哪个，不同的鱼对鱼饵有偏好。',
       highlight: '#bait-row',
+      unlock: 2,
     },
     {
-      title: '调整力度后抛竿',
+      title: '第 3 步：调整力度后抛竿',
       desc:  '点右下圆形力度按钮循环（0→100），数字越大抛得越远、稀有鱼出现概率越高。点中央大圆按钮抛竿。',
       highlight: '#cast',
+      unlock: 3,
     },
     {
-      title: '等待鱼上钩',
+      title: '第 4 步：等待鱼上钩',
       desc:  '鱼会先试探浮漂（轻微跳动），犹豫后猛咬钩（浮漂顿挫下沉）。看到顿挫就快点收线。',
       highlight: '.stage',
+      unlock: 4,
     },
     {
-      title: '收线小游戏',
+      title: '第 5 步：收线小游戏',
       desc:  '点「↩ 收线」后，指针左右扫动。点击「锁定」停在绿色区间内 = 完美收线，偏离越远越容易断线。',
       highlight: '#reel',
+      unlock: 5,
     },
     {
-      title: '开始你的渔夫之旅',
-      desc:  '商店可以买鱼竿和鱼饵；图鉴记录捕获；成就奖励金币。祝你丰收！',
+      title: '🎓 完成新手教学！',
+      desc:  '恭喜！你已掌握：切地点→选鱼饵→调力度→抛竿→收线。商店可买鱼竿鱼饵；图鉴记录捕获；成就奖励金币。祝你丰收！',
       highlight: null,
+      unlock: 6,
     },
   ];
 
@@ -155,18 +169,42 @@ function runOnboarding(){
     if (currentHl) currentHl.classList.remove('onboard-highlight');
     mask.classList.remove('show');
     localStorage.setItem(ONB_KEY, '1');
+    if (state) {
+      state.tutorial = 6;
+      save();
+    }
+  }
+
+  // 分级锁：每个步骤都启用/禁用对应功能
+  // 通过覆盖 cast/reel/抛点/bait-clicks 行为
+  function applyStepLocks(){
+    const step = STEPS[idx];
+    // 第 1 步之前：禁用抛杆/收线/鱼饵
+    // 第 2 步之前：禁用抛杆/收线
+    // 第 3 步之前：禁用抛杆
+    // 第 4 步之前：禁用收线
+    // 第 5 步之前：禁用收线（已抛）
+    // 第 6 步：完全解锁
+    const c = $('cast'); const r = $('reel'); const p = $('power');
+    if (!c || !r || !p) return;
+    const u = step.unlock;
+    c.disabled = (u < 3);  // 抛杆要选完鱼饵、调完力度
+    r.disabled = (u < 4);  // 收线要抛完竿
+    if (u < 3) p.classList.add('onboard-dim');
+    else p.classList.remove('onboard-dim');
   }
 
   next.addEventListener('click', () => {
-    if (idx < STEPS.length - 1){ idx++; render(); }
-    else { end(); }
+    if (idx < STEPS.length - 1){ idx++; render(); applyStepLocks(); }
+    else { end(); applyStepLocks(); }
   });
-  skip.addEventListener('click', end);
+  skip.addEventListener('click', () => { end(); applyStepLocks(); });
   mask.addEventListener('click', (e) => {
     if (e.target === mask) next.click();
   });
 
   render();
+  applyStepLocks();
   mask.classList.add('show');
 }
 setTimeout(runOnboarding, 600);
