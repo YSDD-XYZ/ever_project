@@ -7,7 +7,7 @@ import { cast, reel, pushLog } from './game.js';
 import {
   renderHUD, renderPlaces, renderBaits,
   showLogs, showCodex, showShop, showAchv, showHelp,
-  showSaveCode, importSaveCode, showSlots,
+  showSaveCode, importSaveCode, showSlots, showCatchModal,
   openModal, closeModal,
 } from './ui.js';
 
@@ -148,6 +148,14 @@ window.addEventListener('game:state-changed', () => {
 });
 window.addEventListener('game:bait-changed', () => {
   renderBaits();
+});
+// 捕获事件：弹出捕获模态（由 shared/game.js 派发，shared/ui.js 不存在
+// 捕获模态，避免 shared/ui 循环）
+window.addEventListener('game:caught', (e) => {
+  const { fish, weight, gain } = e.detail || {};
+  if (fish && typeof showCatchModal === 'function') {
+    showCatchModal(fish, weight, gain);
+  }
 });
 
 // 绑定

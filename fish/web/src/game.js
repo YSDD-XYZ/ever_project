@@ -30,10 +30,8 @@ function cast(){
 
   // 鱼饵消费 + UI（发事件让端点层刷新）
   window.dispatchEvent(new CustomEvent('game:bait-changed'));
-  if (typeof renderBaits === 'function') renderBaits();
   // 同时派发 state-changed 让 stat-cast 等 HUD 字段立刻更新
   window.dispatchEvent(new CustomEvent('game:state-changed'));
-  if (typeof renderHUD === 'function') renderHUD();
 
   $('cast').disabled = true;
   $('reel').disabled = false;
@@ -201,7 +199,6 @@ function miniReelGame(power, weight, breakChance){
     hooked = null; if (fishEl) { fishEl.dispose && fishEl.dispose(); fishEl=null; }
     resetAfterAction();
     window.dispatchEvent(new CustomEvent('game:state-changed'));
-    if (typeof renderHUD === 'function') renderHUD();
   }
   stopBtn.addEventListener('click', stop);
   function keyHandler(e){
@@ -228,7 +225,7 @@ function captureFish(weight, factor=1){
     toast(`升级！Lv.${state.level} 🎉`);
   }
   state.codex[f.id] = (state.codex[f.id]||0)+1;
-  state.places[state.placeId] = (state.places[state.placeId]||0);
+  state.places[state.placeId] = (state.places[state.placeId]||0) + 1;
   if (['稀有','史诗','神秘'].includes(f.rarity)) state.totalRarity++;
   if (['传说','神秘'].includes(f.rarity)) state.legend++;
   if (factor >= 1) state.perfectReel++;
@@ -237,7 +234,6 @@ function captureFish(weight, factor=1){
   checkAchievements();
   save();
   window.dispatchEvent(new CustomEvent('game:state-changed'));
-  if (typeof renderHUD === 'function') renderHUD();
   // 启动 3D 捕获序列；动画结束后再弹模态框、解除按钮锁定
   audio.caught();
   casting = true;
@@ -249,7 +245,8 @@ function captureFish(weight, factor=1){
   $('btn-slots')?.setAttribute('disabled','disabled');
   scene.catchSequence(f, () => {
     window.dispatchEvent(new CustomEvent('game:caught', { detail: { fish: f, weight, gain } }));
-    if (typeof showCatchModal === 'function') showCatchModal(f, weight, gain);
+    // 派发 game:caught 事件，由端点 main.js 监听后调 showCatchModal
+    // (避免 shared/ui 循环)
     casting = false;
     $('cast').disabled = false;
     $('reel').disabled = true;
@@ -341,7 +338,6 @@ function tickWorld(){
     pushLog('时间流转：'+state.time, 'tip');
   }
   window.dispatchEvent(new CustomEvent('game:state-changed'));
-  if (typeof renderHUD === 'function') renderHUD();
 }
 setInterval(tickWorld, 6000);
 

@@ -29,7 +29,7 @@ function renderPlaces(){
     const cls = 'place' + (state.placeId===p.id?' active':'') + (unlock?'':' locked');
     const node = el('div', { class: cls, onclick: ()=>{
       if (!unlock) { toast('需要等级 '+(p.req.lv||0)+(p.req.money?' 且 '+p.req.money+' 金币':'')); return; }
-      state.placeId = p.id; state.places[p.id] = (state.places[p.id]||0);
+      state.placeId = p.id; state.places[p.id] = (state.places[p.id]||0) + 1;
       renderHUD(); renderPlaces();
     }},
       el('h4', {}, p.name + (unlock?'':' 🔒')),
@@ -39,6 +39,7 @@ function renderPlaces(){
         p.req.money ? el('span',{class:'tag'},'💰 '+p.req.money) : null,
         ...p.weather.map(w => el('span',{class:'tag weather-'+w}, w)),
         ...p.time.map(t => el('span',{class:'tag'}, t)),
+        unlock ? el('span',{class:'place-req'}, '已钓 ' + (state.places[p.id]||0) + ' 次') : null,
       )
     );
     list.append(node);

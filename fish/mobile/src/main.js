@@ -9,7 +9,7 @@ import {
   renderHUD, renderPlaces, renderBaits,
   showLogs, showCodex, showShop, showAchv, showHelp,
   togglePlacesDrawer,
-  showSaveCode, importSaveCode, showSlots,
+  showSaveCode, importSaveCode, showSlots, showCatchModal,
   openModal, closeModal,
 } from './ui.js';
 
@@ -158,6 +158,13 @@ window.addEventListener('game:state-changed', () => {
 });
 window.addEventListener('game:bait-changed', () => {
   renderBaits();
+});
+// 捕获事件：弹出捕获模态
+window.addEventListener('game:caught', (e) => {
+  const { fish, weight, gain } = e.detail || {};
+  if (fish && typeof showCatchModal === 'function') {
+    showCatchModal(fish, weight, gain);
+  }
 });
 
 // 绑定

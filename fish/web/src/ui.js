@@ -39,6 +39,7 @@ function renderPlaces(){
         p.req.money ? el('span',{class:'tag'},'💰 '+p.req.money) : null,
         ...p.weather.map(w => el('span',{class:'tag weather-'+w}, w)),
         ...p.time.map(t => el('span',{class:'tag'}, t)),
+        unlock ? el('span',{class:'place-req'}, '已钓 ' + (state.places[p.id]||0) + ' 次') : null,
       )
     );
     list.append(node);
