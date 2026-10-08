@@ -36,9 +36,12 @@ function renderHUD(){
   $('hud-level').textContent = state.level;
   const need = state.level * 50;
   $('hud-xp').style.width = clamp(state.xp / need * 100, 0, 100) + '%';
-  $('hud-weather').textContent = (state.weather==='晴'?'☀':state.weather==='雨'?'🌧':state.weather==='雾'?'🌫':'❄')+' '+state.weather;
+  // 天气/时段：web 端用 #hud-weather/#hud-time，mobile 端用 #env-weather/#env-time
+  const weatherEl = $('hud-weather') || $('env-weather');
+  const timeEl    = $('hud-time') || $('env-time');
+  if (weatherEl) weatherEl.textContent = (state.weather==='晴'?'☀':state.weather==='雨'?'🌧':state.weather==='雾'?'🌫':'❄')+' '+state.weather;
   $('hud-place').textContent = PLACES.find(p=>p.id===state.placeId).name;
-  $('hud-time').textContent = state.time;
+  if (timeEl) timeEl.textContent = (timeEl.id.startsWith('env') ? '⏱ ' : '') + state.time;
   $('stat-catch').textContent = state.totalCatch;
   $('stat-heaviest').textContent = state.biggestKg ? state.biggestKg.toFixed(1)+'kg' : '—';
   $('stat-earn').textContent = state.totalEarn;

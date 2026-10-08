@@ -10,9 +10,10 @@ function renderHUD(){
   $('hud-level').textContent = state.level;
   const need = state.level * 50;
   $('hud-xp').style.width = clamp(state.xp / need * 100, 0, 100) + '%';
-  $('hud-weather').textContent = (state.weather==='晴'?'☀':state.weather==='雨'?'🌧':state.weather==='雾'?'🌫':'❄')+' '+state.weather;
   $('hud-place').textContent = PLACES.find(p=>p.id===state.placeId).name;
-  $('hud-time').textContent = state.time;
+  // 天气/时段 显示在左下角 env 容器
+  $('env-weather').textContent = (state.weather==='晴'?'☀':state.weather==='雨'?'🌧':state.weather==='雾'?'🌫':'❄')+' '+state.weather;
+  $('env-time').textContent = '⏱ '+state.time;
   $('stat-catch').textContent = state.totalCatch;
   $('stat-heaviest').textContent = state.biggestKg ? state.biggestKg.toFixed(1)+'kg' : '—';
   $('stat-earn').textContent = state.totalEarn;
@@ -51,7 +52,7 @@ function renderBaits(){
   BAITS.forEach(b => {
     const cnt = state.baits[b.id]||0;
     const cls = 'bait' + (state._bait===b.id?' active':'') + (cnt<=0?' disabled':'');
-    const node = el('div', { class:cls, onclick: ()=>{
+    const node = el('div', { class:cls, title: b.name + ' ×' + cnt, onclick: ()=>{
       if (cnt<=0) { toast('这种鱼饵用完了，去商店买一些吧'); return; }
       state._bait = b.id;
       save();
@@ -61,7 +62,7 @@ function renderBaits(){
     }},
       el('div',{class:'emoji'},b.emj),
       el('div',{class:'nm'}, b.name),
-      el('div',{class:'cnt'}, '×'+cnt),
+      el('div',{class:'cnt'}, String(cnt)),
     );
     grid.append(node);
   });

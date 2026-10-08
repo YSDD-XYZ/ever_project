@@ -75,46 +75,106 @@
       linear-gradient(180deg, var(--bg) 0%, #050b14 100%);
   }
 
-  /* ---------- 顶部 HUD ---------- */
+  /* ---------- 顶部 HUD：单行玻璃条 ---------- */
   .hud {
-    display: flex; flex-direction: column; gap: 6px;
-    padding: 8px 14px 6px;
-    background: linear-gradient(180deg, rgba(0,0,0,.32), rgba(0,0,0,0));
-    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-    position: relative; z-index: 5;
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    z-index: 5;
+    background: linear-gradient(180deg, rgba(0,0,0,.45) 0%, rgba(0,0,0,0) 100%);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    pointer-events: none;  /* 整个 HUD 不挡 3D 拖动 */
   }
-  .hud-row { display: flex; align-items: center; gap: 8px; }
-  .hud-primary { justify-content: space-between; }
-  .hud-secondary { justify-content: space-between; padding-left: 2px; }
-  .hud-secondary .chip { padding: 4px 8px; font-size: 11px; }
-  .title {
-    font-weight: 800; letter-spacing: 1px; font-size: 14px;
-    background: linear-gradient(90deg, var(--primary-2), var(--primary));
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-    white-space: nowrap;
+  .hud > * { pointer-events: auto; }
+  .hud-left { display: flex; align-items: center; gap: 10px; }
+  /* 金币 */
+  .coin {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px;
+    background: linear-gradient(135deg, rgba(255,209,102,.22), rgba(255,140,80,.18));
+    border: 1px solid rgba(255,209,102,.4);
+    border-radius: var(--r-pill);
+    box-shadow: 0 2px 8px rgba(255,180,80,.15);
   }
-  .chip {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid var(--border);
-    padding: 4px 10px; border-radius: var(--r-pill);
-    font-size: var(--fs-md); display: inline-flex; align-items: center; gap: 5px;
-    color: var(--text);
-    transition: background .15s;
-    backdrop-filter: blur(4px);
+  .coin-em { font-size: 14px; }
+  .coin b {
+    color: #ffe28a; font-weight: 800; font-size: 15px;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 2px rgba(0,0,0,.5);
+    min-width: 1.5em; text-align: right;
   }
-  .chip:active { background: rgba(255,255,255,.12); }
-  .chip b { color: var(--accent); font-weight: 700; }
-  .chip-money b { font-variant-numeric: tabular-nums; min-width: 1.6em; text-align: right; }
-  .chip-menu { padding: 4px 10px; font-size: 16px; font-weight: 700; cursor: pointer; min-width: 36px; justify-content: center; }
-  .xp-bar {
-    width: 80px; height: 5px; border-radius: var(--r-pill);
-    background: rgba(255,255,255,.08); overflow: hidden; position: relative;
+  /* 等级 + XP */
+  .lv {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px 5px 12px;
+    background: linear-gradient(135deg, rgba(91,227,194,.18), rgba(122,215,255,.14));
+    border: 1px solid rgba(91,227,194,.35);
+    border-radius: var(--r-pill);
+    color: var(--primary);
+    font-size: 12px; font-weight: 700;
   }
-  .xp-bar > i {
+  .lv b { color: #fff; font-weight: 800; }
+  .xp-track {
+    display: inline-block; width: 50px; height: 5px;
+    background: rgba(255,255,255,.12);
+    border-radius: var(--r-pill); overflow: hidden;
+    position: relative; vertical-align: middle;
+  }
+  .xp-track > i {
     display: block; height: 100%; width: 0%;
     background: linear-gradient(90deg, var(--primary-2), var(--primary));
     transition: width .4s;
   }
+  /* 齿轮按钮 */
+  .gear {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.08);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 18px; line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s, transform .15s;
+  }
+  .gear:active { background: rgba(91,227,194,.2); transform: rotate(60deg); }
+
+  /* ---------- 左下角：环境信息 ---------- */
+  .env {
+    position: fixed; left: 12px; bottom: 200px;
+    display: flex; flex-direction: column; gap: 4px;
+    z-index: 4;
+    pointer-events: none;
+  }
+  .env-item {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 9px;
+    background: rgba(0,0,0,.4);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: var(--r-pill);
+    color: var(--text-2);
+    font-size: 11px;
+    pointer-events: auto;
+  }
+  .env-item b { color: var(--text); font-weight: 600; }
+
+  /* ---------- 顶部条幅 hint（替代 stage 中央文字） ---------- */
+  .hint {
+    position: fixed; top: 56px; left: 50%; transform: translateX(-50%);
+    padding: 6px 14px;
+    background: rgba(0,0,0,.55);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: var(--r-pill);
+    color: var(--text);
+    font-size: 12px;
+    z-index: 4;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .25s;
+  }
+  .hint.show { opacity: 1; }
   .btn {
     cursor: pointer;
     border: 1px solid var(--border);
@@ -263,233 +323,219 @@
   .tag.weather-晴{color:#ffd166;} .tag.weather-雨{color:var(--primary-2);}
   .tag.weather-雾{color:#cfd6e4;} .tag.weather-雪{color:#e0eaff;}
 
-  /* ---------- FAB 圆形按钮 + 弹出菜单 ---------- */
-  .fab {
-    position: fixed; right: 16px; bottom: 200px;
-    width: 52px; height: 52px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary), var(--primary-2));
-    color: #06161e; border: none; cursor: pointer;
-    font-size: 24px; font-weight: 800;
-    box-shadow: 0 8px 24px rgba(91,227,194,.4);
-    z-index: 7;
-    display: flex; align-items: center; justify-content: center;
-    transition: transform .15s;
-  }
-  .fab:active { transform: scale(.92); }
+  /* ---------- FAB 菜单（从齿轮按钮弹出） ---------- */
   .fab-menu {
-    position: fixed; right: 16px; bottom: 264px;
-    display: flex; flex-direction: column-reverse; gap: 6px;
-    z-index: 6;
-    opacity: 0; transform: translateY(20px) scale(.9);
+    position: fixed; top: 60px; right: 12px;
+    display: flex; flex-direction: column; gap: 6px;
+    z-index: 8;
+    opacity: 0; transform: translateY(-8px);
     pointer-events: none;
     transition: opacity .2s, transform .2s;
+    max-width: 180px;
   }
   .fab-menu.open {
-    opacity: 1; transform: translateY(0) scale(1);
+    opacity: 1; transform: translateY(0);
     pointer-events: auto;
   }
   .fab-item {
-    display: flex; align-items: center; gap: 8px;
-    padding: 8px 14px;
-    background: rgba(15, 28, 50, .92);
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px;
+    background: rgba(15, 28, 50, .95);
     border: 1px solid var(--border-strong);
     border-radius: var(--r-pill);
     color: var(--text);
     font-size: 13px; font-weight: 600;
     cursor: pointer;
     backdrop-filter: blur(12px);
-    box-shadow: 0 4px 12px rgba(0,0,0,.3);
+    box-shadow: 0 4px 14px rgba(0,0,0,.4);
     transition: background .15s, transform .15s;
-    min-width: 96px;
   }
-  .fab-item:active { background: rgba(91,227,194,.18); transform: scale(.97); }
+  .fab-item:active { background: rgba(91,227,194,.2); transform: scale(.97); }
   .fab-item .ico { font-size: 16px; }
   .fab-item.fab-danger { color: var(--danger); }
   .fab-divider {
     height: 1px; background: var(--border);
-    margin: 4px 8px;
+    margin: 4px 6px;
   }
   .fab-backdrop {
-    position: fixed; inset: 0; background: rgba(0,0,0,.4);
-    z-index: 5; opacity: 0; pointer-events: none;
+    position: fixed; inset: 0;
+    z-index: 7; opacity: 0; pointer-events: none;
     transition: opacity .2s;
   }
   .fab-backdrop.show { opacity: 1; pointer-events: auto; }
 
-  /* ---------- 折叠式统计抽屉 ---------- */
+  /* ---------- 折叠式统计抽屉（左下角） ---------- */
   .stats-drawer {
-    position: fixed; left: 12px; bottom: 280px;
+    position: fixed; left: 12px; top: 56px;
     background: rgba(15, 28, 50, .88);
     border: 1px solid var(--border);
     border-radius: var(--r-md);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
     z-index: 4;
-    max-width: calc(100vw - 80px);
+    min-width: 110px;
   }
   .stats-drawer summary {
     list-style: none;
-    padding: 6px 12px;
+    padding: 5px 10px;
     cursor: pointer;
     display: flex; align-items: center; gap: 6px;
-    font-size: 12px; color: var(--text-2);
+    font-size: 11px; color: var(--text-2);
     user-select: none;
   }
   .stats-drawer summary::-webkit-details-marker { display: none; }
-  .stats-drawer summary .ico { font-size: 14px; }
-  .stats-drawer summary .chev { margin-left: auto; transition: transform .2s; }
+  .stats-drawer summary .ico { font-size: 13px; }
+  .stats-drawer summary .chev { margin-left: auto; transition: transform .2s; font-size: 10px; }
   .stats-drawer[open] summary .chev { transform: rotate(180deg); }
   .stats-drawer .stats-mini {
-    padding: 8px 12px 10px;
+    padding: 6px 10px 8px;
     border-top: 1px solid var(--border);
-    grid-template-columns: repeat(3, auto);
-    gap: 4px 14px;
-    font-size: 11px;
+    grid-template-columns: repeat(2, auto);
+    gap: 3px 12px;
+    font-size: 10px;
     display: grid;
   }
+  .stats-drawer .stats-mini b { color: var(--accent); }
 
-  /* ---------- 底部控制区：精简（鱼饵横滑 + 力度 + 抛杆） ---------- */
+  /* ---------- 底部控制区：鱼饵 + 抛杆 + 力度 ---------- */
   .controls {
-    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.5));
-    border-top: 1px solid var(--border);
-    padding: 8px 14px 12px;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    display: flex; flex-direction: column; gap: 8px;
+    position: fixed; left: 0; right: 0; bottom: 0;
+    padding: 8px 12px 14px;
+    background: linear-gradient(180deg, rgba(255,255,255,.02) 0%, rgba(0,0,0,.7) 100%);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    display: flex; flex-direction: column; gap: 10px;
+    z-index: 5;
   }
 
-  /* 鱼饵：横向滚动 */
+  /* 鱼饵：圆形图标横滑（更游戏化） */
   .bait-row {
-    display: flex; gap: 6px;
+    display: flex; gap: 8px;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
-    padding: 2px 2px 4px;
+    padding: 4px 4px 6px;
+    justify-content: center;
   }
   .bait-row::-webkit-scrollbar { display: none; }
   .bait {
     flex: 0 0 auto;
-    min-width: 56px;
-    border: 1px solid var(--border);
-    border-radius: var(--r-md);
-    padding: 6px 8px;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    border: 2px solid transparent;
     cursor: pointer;
-    text-align: center;
-    font-size: 11px;
-    background: rgba(255,255,255,.03);
+    background: rgba(255,255,255,.06);
     transition: all .15s;
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
-    scroll-snap-align: start;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    scroll-snap-align: center;
   }
-  .bait:hover {
-    background: rgba(255,255,255,.08);
-    border-color: var(--border-strong);
+  .bait .emoji { font-size: 24px; line-height: 1; pointer-events: none; }
+  .bait .cnt {
+    position: absolute; top: -2px; right: -2px;
+    min-width: 18px; height: 18px; padding: 0 4px;
+    background: var(--accent);
+    color: #2c1206;
+    font-size: 10px; font-weight: 800;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1.5px solid #0b1a2b;
+    line-height: 1;
   }
+  .bait:hover { background: rgba(255,255,255,.12); }
   .bait.active {
-    border-color: var(--accent);
-    background: rgba(255, 209, 102, .12);
-    box-shadow: 0 0 0 1px var(--accent) inset;
+    border-color: var(--primary);
+    background: linear-gradient(135deg, rgba(91,227,194,.2), rgba(122,215,255,.15));
+    box-shadow: 0 0 0 3px rgba(91,227,194,.18), 0 4px 12px rgba(91,227,194,.3);
+    transform: translateY(-2px);
   }
   .bait.disabled { opacity: .35; cursor: not-allowed; }
-  .bait .emoji { font-size: 18px; line-height: 1; }
-  .bait .nm { font-weight: 700; color: var(--text); font-size: 10px; }
-  .bait .cnt {
-    font-size: 9px; color: var(--text-3);
-    font-variant-numeric: tabular-nums;
-  }
+  .bait .nm { display: none; }   /* 隐藏名字（只显示图标 + 数量徽章） */
 
-  /* 力度：-  +  数值 */
-  .power-row {
-    display: flex; align-items: center; gap: 8px;
+  /* 抛杆 / 收线 / 力度 组合行 */
+  .cast-bar {
+    display: grid; grid-template-columns: 56px 1fr 56px;
+    gap: 16px; align-items: center;
+    justify-content: center;
   }
-  .power-btn {
-    width: 36px; height: 36px;
+  /* 抛杆：巨圆按钮 + 内嵌 SVG 圆环 */
+  .cast-btn {
+    position: relative;
+    width: 84px; height: 84px;
+    margin: 0 auto;
     border-radius: 50%;
-    background: rgba(255,255,255,.05);
-    border: 1px solid var(--border);
+    border: none; cursor: pointer;
+    background: radial-gradient(circle at 50% 35%, #ffcb80 0%, #ff7a59 70%, #d04a30 100%);
+    box-shadow:
+      0 0 0 4px rgba(255,140,80,.15),
+      0 8px 24px rgba(255,90,40,.5),
+      inset 0 -4px 8px rgba(0,0,0,.25),
+      inset 0 4px 8px rgba(255,255,255,.2);
+    transition: transform .1s, box-shadow .15s;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #2c1206;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cast-btn:active { transform: scale(.94); }
+  .cast-btn:disabled { filter: grayscale(.7); opacity: .6; cursor: not-allowed; }
+  .cast-svg { position: absolute; inset: -6px; width: calc(100% + 12px); height: calc(100% + 12px); transform: rotate(0deg); pointer-events: none; }
+  .cast-svg .ring-bg { fill: none; stroke: rgba(255,255,255,.18); stroke-width: 3; }
+  .cast-svg .ring-fill {
+    fill: none; stroke: #5be3c2; stroke-width: 4;
+    stroke-dasharray: 289; stroke-dashoffset: 289;
+    stroke-linecap: round;
+    transform: rotate(-90deg); transform-origin: center;
+    transition: stroke-dashoffset .1s linear;
+  }
+  .cast-icon { font-size: 28px; line-height: 1; margin-top: -2px; pointer-events: none; }
+  .cast-text { font-size: 10px; font-weight: 800; letter-spacing: 1px; margin-top: 2px; pointer-events: none; }
+
+  /* 收线按钮（圆形辅助） */
+  .reel-btn {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: rgba(91,227,194,.15);
+    border: 2px solid var(--primary);
     color: var(--primary);
-    font-size: 18px; font-weight: 700;
+    font-size: 22px; line-height: 1;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     transition: background .15s, transform .1s;
   }
-  .power-btn:active { background: rgba(91,227,194,.18); transform: scale(.92); }
-  .power-bar {
-    flex: 1; position: relative;
-    height: 8px;
-    background: rgba(255,255,255,.08);
-    border-radius: var(--r-pill);
-    overflow: hidden;
-  }
-  .power-fill {
-    position: absolute; top: 0; left: 0; bottom: 0;
-    width: 60%;
-    background: linear-gradient(90deg, var(--primary-2), var(--accent));
-    border-radius: var(--r-pill);
-    transition: width .15s;
-  }
-  .power-bar input[type=range] {
-    position: absolute; inset: -6px 0;
-    width: 100%; height: 20px;
-    margin: 0; padding: 0;
-    background: transparent;
-    -webkit-appearance: none; appearance: none;
-    outline: none;
-    opacity: 0;
-    cursor: pointer;
-  }
-  .power-val {
-    font-size: 12px; font-weight: 700; color: var(--accent);
-    min-width: 28px; text-align: right;
-    font-variant-numeric: tabular-nums;
-  }
+  .reel-btn:not(:disabled):active { background: rgba(91,227,194,.3); transform: scale(.94); }
+  .reel-btn:disabled { opacity: .3; cursor: not-allowed; }
 
-  /* 抛杆 + 收线 行 */
-  .cast-row {
-    display: flex; gap: 8px; align-items: center;
-  }
-  .big-cast {
-    flex: 1;
-    font-size: 16px;
-    padding: 12px 20px;
-    border-radius: var(--r-pill);
-    background: linear-gradient(135deg, #ffb45e, #ff7a59);
-    color: #2c1206; border: none; cursor: pointer; font-weight: 800;
-    box-shadow: 0 6px 18px rgba(255,140,80,.4);
-    transition: transform .1s, box-shadow .15s;
-    white-space: nowrap;
-    letter-spacing: 1px;
+  /* 力度：圆形按钮（中间数字 + 外圈弧形进度） */
+  .power-btn {
     position: relative;
-  }
-  .big-cast:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(255,140,80,.5); }
-  .big-cast:active { transform: translateY(0) scale(.97); }
-  .big-cast:disabled { filter: grayscale(.6); opacity:.55; cursor:not-allowed; transform:none; box-shadow: none; }
-  .btn-reel {
-    padding: 12px 18px;
-    border-radius: var(--r-pill);
-    background: rgba(91,227,194,.15);
-    border: 1px solid var(--primary);
-    color: var(--primary);
-    font-weight: 700;
-    font-size: 14px;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: rgba(15, 28, 50, .88);
+    border: 1px solid var(--border);
     cursor: pointer;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
     transition: background .15s;
-    white-space: nowrap;
   }
-  .btn-reel:active { background: rgba(91,227,194,.28); }
-  .btn-reel:disabled { opacity:.35; cursor:not-allowed; }
-
-  /* 抛杆 cooldown 圆环 */
-  .cast-ring {
-    position: fixed; right: 12px; bottom: 144px;
-    width: 60px; height: 60px;
-    z-index: 6;
+  .power-btn:active { background: rgba(91,227,194,.2); }
+  .power-btn svg {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    transform: rotate(-90deg);
+  }
+  .power-btn .arc-bg {
+    fill: none; stroke: rgba(255,255,255,.12); stroke-width: 3;
+  }
+  .power-btn .arc-fill {
+    fill: none; stroke: url(#power-grad); stroke-width: 3;
+    stroke-linecap: round;
+    transition: stroke-dasharray .15s;
+  }
+  .power-btn .power-label {
+    position: relative; z-index: 1;
+    color: var(--accent);
+    font-weight: 800; font-size: 14px;
+    font-variant-numeric: tabular-nums;
     pointer-events: none;
-    opacity: 0;
-    transition: opacity .15s;
   }
-  .cast-ring.show { opacity: 1; }
-  #cast-ring-fill { transition: stroke-dashoffset .15s linear; }
 
   /* ---------- 统计区 ---------- */
   .stats-mini {
@@ -500,33 +546,23 @@
     align-content: center;
   }
   .stats-mini > span { color: var(--text-3); font-size: var(--fs-sm); }
-  /* ---------- 响应式：mobile 优先，桌面微调 ---------- */
-  /* 平板横屏：抽屉稍窄，控制区 padding 稍大 */
+
+  /* ---------- 响应式 ---------- */
   @media (min-width: 720px) {
-    .hud { padding: 10px 22px 8px; }
-    .hud-row { gap: 10px; }
-    .chip { padding: 6px 12px; font-size: var(--fs-md); }
-    .hud-secondary .chip { font-size: var(--fs-md); padding: 6px 12px; }
-    .controls { padding: 10px 22px 14px; }
-    .bait { min-width: 64px; padding: 8px 10px; }
-    .bait .emoji { font-size: 22px; }
-    .bait .nm { font-size: 11px; }
-    .bait .cnt { font-size: 10px; }
+    .hud { padding: 12px 24px; }
+    .coin b { font-size: 17px; }
+    .lv { font-size: 13px; }
+    .cast-btn { width: 96px; height: 96px; }
+    .bait { width: 56px; height: 56px; }
+    .bait .emoji { font-size: 26px; }
+    .reel-btn, .power-btn { width: 56px; height: 56px; }
     .left-panel { width: 360px; }
   }
-  /* 桌面：FAB 切回侧边按钮，HUD 顶栏平铺 */
-  @media (min-width: 1024px) {
-    .fab, .fab-menu, .fab-backdrop, .cast-ring { display: none !important; }
-    .controls { flex-direction: row; align-items: center; }
-    .bait-row { flex: 1; }
-    .power-row { flex: 0 0 220px; }
-    .cast-row { flex: 0 0 auto; }
-    .big-cast { flex: 0 0 auto; min-width: 140px; }
-  }
-  /* 极小屏（折叠副屏） */
   @media (max-width: 360px) {
-    .bait { min-width: 50px; }
-    .stats-drawer { bottom: 264px; }
+    .bait { width: 46px; height: 46px; }
+    .bait .emoji { font-size: 22px; }
+    .cast-btn { width: 76px; height: 76px; }
+    .reel-btn, .power-btn { width: 46px; height: 46px; }
   }
 
   /* ---------- 新手引导 ---------- */
@@ -688,66 +724,75 @@
     color: var(--text-2);
     font-size: 14px; line-height: 1.7;
     margin-bottom: 8px;
-  }</style>
+  </style>
+
+  <!-- 渐变定义（被 SVG 引用） -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="power-grad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#7ad7ff"/>
+        <stop offset="100%" stop-color="#ffd166"/>
+      </linearGradient>
+    </defs>
+  </svg>
 </head>
 <body>
 
-  <!-- 顶部 HUD：紧凑两行 -->
+  <!-- 顶部 HUD：单行玻璃条 -->
   <div class="hud">
-    <div class="hud-row hud-primary">
-      <div class="title">🎣 湖畔垂钓</div>
-      <div class="chip chip-money">💰 <b id="hud-money">0</b></div>
-      <div class="chip chip-level">Lv.<b id="hud-level">1</b>
-        <div class="xp-bar"><i id="hud-xp"></i></div>
-      </div>
+    <div class="hud-left">
+      <span class="coin"><span class="coin-em">💰</span><b id="hud-money">0</b></span>
+      <span class="lv">Lv.<b id="hud-level">1</b><i class="xp-track"><i id="hud-xp"></i></i></span>
     </div>
-    <div class="hud-row hud-secondary">
-      <div class="chip chip-place">📍 <b id="hud-place">青石湖</b></div>
-      <div class="chip chip-weather" id="hud-weather">☀ 晴</div>
-      <div class="chip chip-time">⏱ <b id="hud-time">清晨</b></div>
-      <button class="chip chip-menu" id="btn-menu" aria-label="更多">⋯</button>
-    </div>
+    <button class="gear" id="btn-menu" aria-label="设置">⚙</button>
   </div>
 
-  <!-- 主舞台：3D 场景 -->
+  <!-- 主舞台：3D 场景（占满，去掉中央文字） -->
   <div class="stage" id="stage">
     <canvas id="three-canvas" style="position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;"></canvas>
-    <!-- 飘字/浮提示保留为 DOM 叠层 -->
-    <div class="hint" id="hint">选择地点与鱼饵，按下「抛竿」开始 🎣</div>
   </div>
 
-  <!-- 底部：精简控制条（鱼饵 + 力度 + FAB） -->
+  <!-- 左下角：环境信息（地点 / 天气 / 时段） -->
+  <div class="env">
+    <span class="env-item" id="env-place">📍 <b id="hud-place">青石湖</b></span>
+    <span class="env-item" id="env-weather">☀ 晴</span>
+    <span class="env-item" id="env-time">⏱ 清晨</span>
+  </div>
+
+  <!-- 顶部飘字 hint（条幅） -->
+  <div class="hint" id="hint">选择地点与鱼饵，按下「抛竿」开始 🎣</div>
+
+  <!-- 底部：鱼饵 + 抛杆 + 收线 -->
   <div class="controls">
-    <!-- 鱼饵横滑 -->
+    <!-- 鱼饵圆形图标行 -->
     <div class="bait-row" id="bait-row"></div>
 
-    <!-- 力度调整 -->
-    <div class="power-row">
-      <button class="power-btn" id="power-down" aria-label="减小力度">－</button>
-      <div class="power-bar">
-        <div class="power-fill" id="power-fill"></div>
-        <input type="range" id="power" min="0" max="100" value="60"/>
-      </div>
-      <button class="power-btn" id="power-up" aria-label="加大力度">＋</button>
-      <span class="power-val" id="power-val">60</span>
-    </div>
-
-    <!-- 抛杆 + 收线 -->
-    <div class="cast-row">
-      <button class="big-cast" id="cast">🎣 抛竿</button>
-      <button class="btn-reel" id="reel" disabled>↩ 收线</button>
+    <!-- 抛杆按钮（巨大圆形 + 内嵌 cooldown 环）+ 收线 -->
+    <div class="cast-bar">
+      <button class="reel-btn" id="reel" disabled>↩ 收线</button>
+      <button class="cast-btn" id="cast" aria-label="抛竿">
+        <svg class="cast-svg" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="46" class="ring-bg"/>
+          <circle id="cast-ring-fill" cx="50" cy="50" r="46" class="ring-fill"
+                  transform="rotate(-90 50 50)"/>
+        </svg>
+        <span class="cast-icon">🎣</span>
+        <span class="cast-text">抛竿</span>
+      </button>
+      <button class="power-btn" id="power-btn" aria-label="调整力度">
+        <svg viewBox="0 0 100 100">
+          <path id="power-arc" d="" class="arc-bg"/>
+          <path id="power-arc-fill" d="" class="arc-fill"/>
+        </svg>
+        <span class="power-label"><b id="power-val">60</b></span>
+      </button>
     </div>
   </div>
 
-  <!-- FAB：抛杆 cooldown 进度环 -->
-  <svg class="cast-ring" id="cast-ring" viewBox="0 0 100 100">
-    <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="4"/>
-    <circle id="cast-ring-fill" cx="50" cy="50" r="46" fill="none" stroke="var(--primary)" stroke-width="4"
-            stroke-dasharray="289" stroke-dashoffset="289" transform="rotate(-90 50 50)" stroke-linecap="round"/>
-  </svg>
+  <!-- 隐藏的 range（保持兼容） -->
+  <input type="range" id="power" min="0" max="100" value="60" style="display:none"/>
 
-  <!-- 浮动：收起式菜单（替代原右侧 6 按钮） -->
-  <button class="fab" id="btn-fab" aria-label="打开菜单">⋯</button>
+  <!-- FAB 菜单（齿轮按钮触发） -->
   <div class="fab-menu" id="fab-menu">
     <button class="fab-item" data-modo="places"><span class="ico">📍</span><span>地点</span></button>
     <button class="fab-item" data-modo="logs"><span class="ico">📜</span><span>日志</span></button>
@@ -761,12 +806,13 @@
     <button class="fab-item" id="fab-slots"><span class="ico">📚</span><span>存档</span></button>
     <button class="fab-item fab-danger" id="fab-reset"><span class="ico">♻</span><span>重开</span></button>
   </div>
+  <div class="fab-backdrop" id="fab-backdrop"></div>
 
-  <!-- 折叠式统计抽屉 -->
+  <!-- 折叠式统计抽屉（紧贴右上齿轮下方） -->
   <details class="stats-drawer" id="stats-drawer">
     <summary>
       <span class="ico">📊</span>
-      <span>本局统计</span>
+      <span>本局</span>
       <span class="chev">▾</span>
     </summary>
     <div class="stats-mini">

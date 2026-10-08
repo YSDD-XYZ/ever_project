@@ -42,6 +42,19 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// 力度可视化：圆弧进度（放在最前面，避免 TDZ）
+// 全圆周长 2πr ≈ 220 (r=35)
+const POWER_R = 35;
+const POWER_C = 2 * Math.PI * POWER_R;
+function updatePower(val){
+  $('power-val').textContent = val;
+  const pct = val / 100;
+  const arc = $('power-arc-fill');
+  if (arc) {
+    arc.setAttribute('stroke-dasharray', `${pct * POWER_C} ${POWER_C}`);
+  }
+}
+
 function renderAll() {
   renderHUD();
   renderPlaces();
@@ -50,6 +63,8 @@ function renderAll() {
 
 // state._bait 由 validate.js 兜底为 'bread'；用户上次选择会从 localStorage 恢复
 renderAll();
+// 初始化力度可视化（默认 power=60）
+updatePower($('power').value);
 pushLog('欢迎来到湖畔垂钓 🎣', 'tip');
 save();
 
@@ -78,7 +93,7 @@ function runOnboarding(){
     },
     {
       title: '调整力度后抛竿',
-      desc:  '力度越大，抛得越远，稀有鱼出现概率也越高。点「抛竿」开始；冷却时右下圆环会倒计时。',
+      desc:  '点击力度按钮循环（0→100），数字越大抛得越远、稀有鱼出现概率越高。点中央大圆按钮抛竿。',
       highlight: '#cast',
     },
     {
@@ -170,25 +185,18 @@ window.addEventListener('game:caught', (e) => {
 // 绑定
 $('cast').addEventListener('click', () => { vibrate(20); cast(); });
 $('reel').addEventListener('click', () => { vibrate(15); reel(); });
-$('power').addEventListener('input', e => {
-  $('power-val').textContent = e.target.value;
-  $('power-fill').style.width = e.target.value + '%';
-});
-// 力度按钮
-$('power-up')?.addEventListener('click', () => {
+// 力度 input 同步（power 隐藏 input，#power-val 数字，#power-arc-fill 弧形进度）
+$('power').addEventListener('input', e => updatePower(e.target.value));
+// 力度圆形按钮：点击循环 +5 (0→100→0)
+$('power-btn')?.addEventListener('click', () => {
   const p = $('power');
-  p.value = Math.min(100, +p.value + 5);
+  p.value = (+p.value + 5) % 105;  // 0,5,10,...,100,0
   p.dispatchEvent(new Event('input'));
+  vibrate(5);
 });
-$('power-down')?.addEventListener('click', () => {
-  const p = $('power');
-  p.value = Math.max(0, +p.value - 5);
-  p.dispatchEvent(new Event('input'));
-});
-// 顶栏菜单按钮 → 打开 FAB 菜单
+// 顶栏齿轮按钮 → 打开 FAB 菜单
 $('btn-menu')?.addEventListener('click', () => toggleFabMenu());
-// FAB 菜单
-$('btn-fab')?.addEventListener('click', () => toggleFabMenu());
+// FAB 菜单项
 document.querySelectorAll('#fab-menu .fab-item').forEach(b => b.addEventListener('click', () => {
   const m = b.dataset.modo;
   // 存档操作走专用按钮
@@ -248,13 +256,13 @@ function toggleFabMenu(){
   if (!menu) return;
   const isOpen = menu.classList.toggle('open');
   backdrop?.classList.toggle('show', isOpen);
-  $('btn-fab')?.setAttribute('aria-expanded', isOpen);
+  $('btn-menu')?.setAttribute('aria-expanded', isOpen);
   vibrate(8);
 }
 function closeFabMenu(){
   $('fab-menu')?.classList.remove('open');
   document.querySelector('.fab-backdrop')?.classList.remove('show');
-  $('btn-fab')?.setAttribute('aria-expanded', 'false');
+  $('btn-menu')?.setAttribute('aria-expanded', 'false');
 }
 
 // 触觉反馈：移动端 vibrate
