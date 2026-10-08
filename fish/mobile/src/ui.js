@@ -88,8 +88,20 @@ document.addEventListener('keydown', (e) => {
 
 function showCodex(){
   openModal('鱼图鉴 📖', body => {
-    const counter = el('div', { style:'opacity:.8;font-size:13px;margin-bottom:10px;' }, `已发现 ${Object.keys(state.codex).length} / ${FISH.length}`);
-    body.append(counter);
+    const collected = Object.keys(state.codex).length;
+    // 计算当前段位
+    const tier = COLLECTION_TIERS.slice().reverse().find(t => collected >= t.min) || COLLECTION_TIERS[0];
+    const nextTier = COLLECTION_TIERS.find(t => t.min > collected);
+    const header = el('div', { class:'codex-header' },
+      el('div', { class:'codex-tier', style:`color:${tier.color};` },
+        `${tier.tier}段位`,
+        el('div', { class:'codex-tier-bar' },
+          el('div', { class:'codex-tier-fill', style:`width:${nextTier ? Math.min(100, (collected - tier.min) / (nextTier.min - tier.min) * 100) : 100}%;background:${tier.color};` })
+        )
+      ),
+      el('div', { class:'codex-count' }, `${collected} / ${FISH.length}` + (nextTier ? ` · 距离${nextTier.tier}还需 ${nextTier.min - collected} 种` : ' · ✨ 全收集'))
+    );
+    body.append(header);
     const grid = el('div', { class:'codex' });
     FISH.forEach(f => {
       const has = !!state.codex[f.id];
@@ -178,16 +190,13 @@ function showQuests(){
     const intro = el('p', { style:'color:var(--text-2);font-size:13px;margin-bottom:12px;line-height:1.6;' },
       '每天刷新。完成获得金币奖励。');
     const list = el('div', { class:'quest-list' });
-    // 计算今日累计（用 state 自带的字段）
-    const todayStat = {
-      totalCast: state.totalCast,
-      totalCatch: state.totalCatch,
-      perfectReel: state.perfectReel,
-      todayEarn: state.todayEarn || 0,
-      todayRare: state.todayRare || 0,
-    };
+    // 读 state.daily（按日期自动重置）
+    const today = new Date().toISOString().slice(0, 10);
+    if (!state.daily || state.daily.date !== today) {
+      state.daily = { date:today, totalCast:0, totalCatch:0, perfectReel:0, todayEarn:0, todayRare:0 };
+    }
     DAILY_QUESTS.forEach(q => {
-      const progress = Math.min(todayStat[q.target] || 0, q.goal);
+      const progress = Math.min(state.daily[q.target] || 0, q.goal);
       const done = progress >= q.goal;
       const pct = Math.min(100, (progress / q.goal) * 100);
       const row = el('div', { class:'quest'+(done?' done':'') },

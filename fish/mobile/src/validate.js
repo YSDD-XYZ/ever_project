@@ -53,6 +53,8 @@ export function defaultStateShape() {
     _bait: 'bread',  // 临时 UI 状态：当前选中的鱼饵
     // 成就 / 任务追踪
     nightCatch: 0, rainCatch: 0, usedBaits: [], noEscapeStreak: 0, seasonFish: 0,
+    // 每日任务（按日期分组）
+    daily: { date:'', totalCast:0, totalCatch:0, perfectReel:0, todayEarn:0, todayRare:0 },
   };
 }
 

@@ -631,6 +631,42 @@
   }
   .place-req { font-size: 10px; color: var(--text-3); margin-top: 4px; }
 
+  /* ---------- 鱼图鉴 ---------- */
+  .codex-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+  }
+  .codex-tier { font-size: 14px; font-weight: 800; flex: 1; }
+  .codex-tier-bar {
+    height: 5px; background: rgba(255,255,255,.1);
+    border-radius: var(--r-pill); overflow: hidden;
+    margin-top: 4px;
+  }
+  .codex-tier-fill { height: 100%; transition: width .3s; }
+  .codex-count { font-size: 12px; color: var(--text-2); text-align: right; font-variant-numeric: tabular-nums; }
+  .codex { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+  .codex-item {
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 10px 6px;
+    text-align: center;
+  }
+  .codex-item.unknown { opacity: .35; filter: grayscale(.5); }
+  .codex-item .emoji { font-size: 26px; }
+  .codex-item .nm { font-size: 11px; font-weight: 700; margin-top: 4px; color: var(--text); }
+  .codex-item .rarity {
+    font-size: 9px; padding: 1px 5px; border-radius: 99px;
+    display: inline-block; margin-top: 2px;
+    background: rgba(255,255,255,.08); color: var(--text-2);
+  }
+  .codex-item .stat { font-size: 9px; color: var(--text-3); margin-top: 3px; }
+
   /* ---------- FAB 菜单 ---------- */
   .fab-menu {
     position: fixed; top: 56px; right: 12px;

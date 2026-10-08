@@ -98,12 +98,10 @@ const NEW_PLACES = [
 
 // ============= 新鱼竿（4 现有 + 2 新增 = 6）=============
 const NEW_RODS = [
-  { id:'rod-glass',  emj:'🪞', name:'玻璃钢竿', price:6000, type:'rod',
-    desc:'碳纤维混合，强度高，传说鱼出现率 +8%。',
-    effect:{ legBonus:8, hookBonus:5 } },
-  { id:'rod-stellar',emj:'✨', name:'星辉玉竿', price:12000, type:'rod',
-    desc:'镶嵌星辰碎片的传说竿。传说鱼出现率 +15%，抛投距离 +35%。',
-    effect:{ legBonus:15, hookBonus:10, rangeBonus:35 } },
+  { id:'rod-glass',  emj:'🪞', name:'玻璃钢竿', price:6000, type:'rod', desc:'碳纤维混合，强度高，传说鱼出现率 +8%。',
+    effect:{ legBonus:8, hookBonus:5 }, passive:'传说 +8%' },
+  { id:'rod-stellar',emj:'✨', name:'星辉玉竿', price:12000, type:'rod', desc:'镶嵌星辰碎片的传说竿。传说鱼出现率 +15%，抛投距离 +35%。',
+    effect:{ legBonus:15, hookBonus:10, rangeBonus:35 }, passive:'传说 +15% 距离 +35%' },
 ];
 
 // ============= 新鱼饵（5 现有 + 3 新增 = 8）=============

@@ -60,16 +60,29 @@ function cast(){
 }
 
 function tryBite(power){
-  if (!casting) return;  // 重开或异常退出后，已经没有进行中的抛竿
+  if (!casting) return;
   // 决定是否上钩
   const place = PLACES.find(p=>p.id===state.placeId);
   const bait = state._bait;
-  const candidates = FISH.filter(f =>
-    f.waters.includes(place.id) &&
-    f.baits.includes(bait) &&
-    f.weathers.includes(state.weather) &&
-    f.times.includes(state.time)
+  const currentMonth = new Date().getMonth() + 1;  // 1-12
+  const currentSeason = (m) => (
+    (m >= 3 && m <= 5) ? '春' :
+    (m >= 6 && m <= 8) ? '夏' :
+    (m >= 9 && m <= 11) ? '秋' : '冬'
   );
+  const season = currentSeason(currentMonth);
+  const candidates = FISH.filter(f => {
+    // 季节鱼只在对应季节出现
+    const m = f.id.match(/^(spring|summer|autumn|winter)-/);
+    if (m) {
+      const fishSeason = { spring:'春', summer:'夏', autumn:'秋', winter:'冬' }[m[1]];
+      if (fishSeason !== season) return false;
+    }
+    return f.waters.includes(place.id) &&
+      f.baits.includes(bait) &&
+      f.weathers.includes(state.weather) &&
+      f.times.includes(state.time);
+  });
   const pool = candidates.length ? candidates : FISH.filter(f=>f.waters.includes(place.id));
   if (!pool.length) { toast('此地暂无鱼，换个地点吧'); resetAfterAction(); return; }
 
@@ -213,15 +226,35 @@ function captureFish(weight, factor=1){
   state.totalEarn += gain;
   state.totalCatch++;
   if (weight > state.biggestKg) state.biggestKg = weight;
+  // 每日任务进度（按日期自动重置）
+  const today = new Date().toISOString().slice(0, 10);
+  if (!state.daily) state.daily = { date:'', totalCast:0, totalCatch:0, perfectReel:0, todayEarn:0, todayRare:0 };
+  if (state.daily.date !== today) {
+    // 新一天：重置
+    state.daily = { date:today, totalCast:0, totalCatch:0, perfectReel:0, todayEarn:0, todayRare:0 };
+  }
+  state.daily.totalCast++;
+  state.daily.totalCatch++;
+  state.daily.todayEarn += gain;
+  if (['稀有','史诗','神秘','传说'].includes(f.rarity)) state.daily.todayRare++;
   // 升级曲线：每级需要 level*80 XP（30 条常见鱼 ≈ 5 级）
   state.xp += Math.round(5 + weight*3);
   // 升级：每次只升 1 级
   let up = 0;
   while (state.xp >= state.level * 80 && up < 50) {
+    const oldLevel = state.level;
     state.xp -= state.level * 80;
     state.level++;
     up++;
-    toast(`升级！Lv.${state.level} 🎉`);
+    // 升级奖励：金币 + 随机鱼饵
+    const coinBonus = 50 + state.level * 10;
+    state.money += coinBonus;
+    // 随机给一个鱼饵（1-2 个）
+    const baitKeys = ['bread','worm','corn','shrimp','lure','bug','dough','live'];
+    const randomBait = baitKeys[Math.floor(Math.random() * baitKeys.length)];
+    state.baits[randomBait] = (state.baits[randomBait] || 0) + (state.level % 2 === 0 ? 2 : 1);
+    toast(`升级！Lv.${state.level} 🎉 +${coinBonus}💰 +${randomBait}`);
+    pushLog(`🎉 升级至 Lv.${state.level}！奖励：${coinBonus} 金币 + ${randomBait} ×${state.level % 2 === 0 ? 2 : 1}`, 'tip');
   }
   state.codex[f.id] = (state.codex[f.id]||0)+1;
   state.places[state.placeId] = (state.places[state.placeId]||0) + 1;
