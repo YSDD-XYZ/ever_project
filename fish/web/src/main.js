@@ -34,6 +34,10 @@ document.addEventListener('mouseover', (e) => {
   }
 });
 
+// 初始化 2D 场景（mount DOM 到 #stage）
+scene.init('stage');
+scene.setWeather('晴');
+
 // state._bait 由 validate.js 兜底为 'bread'；用户上次选择会从 localStorage 恢复
 renderAll();
 pushLog('欢迎来到湖畔垂钓 🎣', 'tip');

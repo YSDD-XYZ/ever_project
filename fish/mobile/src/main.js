@@ -55,6 +55,11 @@ function updatePower(val){
   }
 }
 
+// 初始化 2D 场景（mount DOM 到 #stage）
+scene.init('stage');
+// 初始天气
+scene.setWeather('晴');
+
 function renderAll() {
   renderHUD();
   renderPlaces();

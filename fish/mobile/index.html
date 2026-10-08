@@ -11,15 +11,7 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <link rel="apple-touch-icon" href="./icon.svg">
-<!-- importmap：把 three 映射到本地 vendor。避免 CDN 不可用 / CORS 问题 -->
-<script type="importmap">
-{
-  "imports": {
-    "three": "./vendor/three.module.min.js",
-    "three/addons/": "./vendor/"
-  }
-}
-</script>
+<!-- importmap：2D 场景无外部依赖 -->
 <style>
   /* ==========================================================
         设计系统（Design Tokens）
@@ -76,7 +68,248 @@
   /* ---------- 3D 场景：铺满全屏 ---------- */
   .stage {
     position: fixed; inset: 0;
-    background: radial-gradient(ellipse at 50% 30%, #2a6fa5 0%, #143457 60%, #0a1e36 100%);
+    background: linear-gradient(180deg, #87ceeb 0%, #b0e0e6 50%, #4682b4 100%);
+    overflow: hidden;
+  }
+
+  /* ---------- 2D 场景元素 ---------- */
+  .sky {
+    position: absolute; inset: 0;
+    pointer-events: none;
+  }
+  .sky.weather-晴 { background: linear-gradient(180deg, #87ceeb 0%, #b0e0e6 60%, transparent 100%); }
+  .sky.weather-雨 { background: linear-gradient(180deg, #4a5568 0%, #718096 50%, transparent 100%); }
+  .sky.weather-雾 { background: linear-gradient(180deg, #a0aec0 0%, #cbd5e0 50%, transparent 100%); }
+  .sky.weather-雪 { background: linear-gradient(180deg, #cbd5e0 0%, #e2e8f0 50%, transparent 100%); }
+  .far { position: absolute; inset: 0; pointer-events: none; }
+  .sun, .moon {
+    position: absolute; top: 8%; right: 15%;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffd166 0%, #ffaa44 70%, transparent 100%);
+    box-shadow: 0 0 40px rgba(255,209,102,.5);
+  }
+  .moon {
+    background: radial-gradient(circle, #e2e8f0 0%, #a0aec0 70%, transparent 100%);
+    box-shadow: 0 0 30px rgba(226,232,240,.4);
+  }
+  .cloud-cover {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(160,174,192,.7) 0%, transparent 60%);
+  }
+  .cloud {
+    position: absolute;
+    background: rgba(255,255,255,.85);
+    border-radius: 50%;
+    filter: blur(2px);
+  }
+  .cloud::before, .cloud::after {
+    content: ''; position: absolute;
+    background: inherit; border-radius: 50%;
+  }
+  .c1 { width: 80px; height: 24px; top: 15%; left: 10%; animation: drift 30s linear infinite; }
+  .c1::before { width: 40px; height: 40px; top: -16px; left: 12px; }
+  .c1::after  { width: 50px; height: 50px; top: -22px; right: 8px; }
+  .c2 { width: 100px; height: 28px; top: 22%; left: 50%; animation: drift 40s linear infinite; animation-delay: -10s; }
+  .c2::before { width: 50px; height: 50px; top: -22px; left: 16px; }
+  .c2::after  { width: 60px; height: 60px; top: -28px; right: 12px; }
+  .c3 { width: 70px; height: 20px; top: 8%; right: 20%; animation: drift 35s linear infinite; animation-delay: -20s; }
+  .c3::before { width: 36px; height: 36px; top: -14px; left: 10px; }
+  .c3::after  { width: 44px; height: 44px; top: -20px; right: 6px; }
+  @keyframes drift {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(120vw); }
+  }
+  .mountain {
+    position: absolute; bottom: 35%;
+    width: 0; height: 0;
+    border-left: 80px solid transparent;
+    border-right: 80px solid transparent;
+    border-bottom: 100px solid rgba(72,84,96,.5);
+  }
+  .m1 { left: 5%; }
+  .m2 { right: 8%; border-bottom-color: rgba(74,85,104,.4); border-left-width: 100px; border-right-width: 100px; border-bottom-width: 80px; }
+
+  /* 水面 */
+  .water {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 35%;
+    background: linear-gradient(180deg, #4a90c8 0%, #2e6da4 50%, #1e4a7a 100%);
+    overflow: hidden;
+  }
+  .water::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(255,255,255,.1) 0%, transparent 50%, rgba(255,255,255,.1) 100%);
+    animation: water-shimmer 4s ease-in-out infinite;
+  }
+  @keyframes water-shimmer {
+    0%, 100% { opacity: .3; }
+    50%      { opacity: .7; }
+  }
+  .wave-bg, .wave-fg {
+    position: absolute; left: 0; right: 0; width: 200%;
+    height: 30px;
+  }
+  .wave-bg { top: 0; animation: wave-drift 8s linear infinite; opacity: .4; }
+  .wave-fg { top: 8px; animation: wave-drift 4s linear infinite; }
+  @keyframes wave-drift {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .ripples {
+    position: absolute; inset: 0;
+    pointer-events: none;
+  }
+  .ripple {
+    position: absolute; bottom: 30%;
+    width: 8px; height: 8px;
+    border: 2px solid rgba(255,255,255,.6);
+    border-radius: 50%;
+    transform: translateX(-50%) translateY(50%);
+    animation: ripple-expand 1.8s ease-out forwards;
+  }
+  @keyframes ripple-expand {
+    0%   { transform: translateX(-50%) translateY(50%) scale(.3); opacity: 1; }
+    100% { transform: translateX(-50%) translateY(50%) scale(6); opacity: 0; }
+  }
+
+  /* 浮漂 */
+  .bobber {
+    position: absolute;
+    left: var(--bx, 50%);
+    bottom: 32%;
+    transform: translateX(-50%);
+    z-index: 3;
+    pointer-events: none;
+  }
+  .bobber-stick {
+    position: absolute;
+    left: 50%; top: -40px;
+    width: 2px; height: 40px;
+    background: linear-gradient(180deg, transparent 0%, #5be3c2 100%);
+    transform: translateX(-50%);
+  }
+  .bobber-flag {
+    position: absolute;
+    left: 50%; top: -52px;
+    font-size: 16px;
+    transform: translateX(-50%);
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,.3));
+  }
+  .bobber-float {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #ff7676 0%, #cc3333 100%);
+    box-shadow:
+      inset 0 -3px 6px rgba(0,0,0,.3),
+      0 0 8px rgba(255,118,118,.4);
+    border: 1.5px solid #fff;
+    animation: bobber-idle 2.4s ease-in-out infinite;
+  }
+  @keyframes bobber-idle {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-3px); }
+  }
+  .bobber.casting .bobber-float { animation: none; }
+  .bobber.nibbling .bobber-float {
+    animation: bobber-nibble 0.4s ease-in-out 3;
+  }
+  @keyframes bobber-nibble {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px) rotate(-8deg); }
+  }
+  .bobber.biting .bobber-float {
+    animation: bobber-bite 0.3s ease-in 2;
+  }
+  @keyframes bobber-bite {
+    0%   { transform: translateY(-4px); }
+    40%  { transform: translateY(14px); }
+    100% { transform: translateY(0); }
+  }
+  .bobber.hooked .bobber-float {
+    background: radial-gradient(circle at 30% 30%, #ffd166 0%, #cc8800 100%);
+    box-shadow: 0 0 16px rgba(255,209,102,.6);
+  }
+
+  /* 鱼在水下 */
+  .fish-layer {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 30%;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .fish-shadow {
+    position: absolute;
+    left: var(--bx, 50%);
+    bottom: 10%;
+    transform: translateX(-50%) scaleX(-1);
+    font-size: 36px;
+    filter:
+      drop-shadow(0 0 6px rgba(0,0,0,.4))
+      hue-rotate(180deg) saturate(.5) brightness(.8);
+    animation: fish-swim 2.5s ease-in-out infinite;
+    opacity: .85;
+  }
+  @keyframes fish-swim {
+    0%, 100% { transform: translateX(-50%) scaleX(-1) translateY(0); }
+    50%      { transform: translateX(-50%) scaleX(-1) translateY(-8px); }
+  }
+
+  /* 鱼跳出水面 */
+  .fish-jump {
+    position: absolute;
+    left: 50%; top: -30px;
+    font-size: 36px;
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  /* 水花 */
+  .splash-layer, .particles {
+    position: absolute; inset: 0;
+    pointer-events: none;
+  }
+  .splash {
+    position: absolute;
+    bottom: 32%;
+    transform: translateX(-50%) translateY(50%);
+    font-size: 24px;
+    z-index: 4;
+    animation: splash-anim 0.8s ease-out forwards;
+  }
+  @keyframes splash-anim {
+    0%   { transform: translateX(-50%) translateY(50%) scale(.5); opacity: 1; }
+    100% { transform: translateX(-50%) translateY(-40px) scale(1.5); opacity: 0; }
+  }
+
+  /* 雨/雪/雾粒子 */
+  .raindrop {
+    position: absolute; top: -20px;
+    width: 2px; height: 14px;
+    background: linear-gradient(180deg, transparent, rgba(174,194,224,.6));
+    border-radius: 1px;
+    animation: rain-fall linear infinite;
+  }
+  @keyframes rain-fall {
+    from { transform: translateY(0); }
+    to   { transform: translateY(110vh); }
+  }
+  .snowflake {
+    position: absolute; top: -10px;
+    font-size: 12px;
+    color: #fff;
+    animation: snow-fall linear infinite;
+  }
+  @keyframes snow-fall {
+    from { transform: translateY(0) translateX(0); }
+    to   { transform: translateY(110vh) translateX(20px); }
+  }
+  .fog {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(203,213,224,.6) 0%, transparent 60%);
+    backdrop-filter: blur(1px);
   }
 
   /* ---------- 顶左 HUD：钱币 + 等级（浮在 3D 上） ---------- */
@@ -600,10 +833,8 @@
 </head>
 <body>
 
-  <!-- 3D 场景：铺满整个 viewport -->
-  <div class="stage" id="stage">
-    <canvas id="three-canvas" style="position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;"></canvas>
-  </div>
+  <!-- 2D 场景容器（由 scene.js mount DOM） -->
+  <div class="stage" id="stage"></div>
 
   <!-- 顶左：钱币 + 等级（浮在 3D 上） -->
   <div class="hud">
