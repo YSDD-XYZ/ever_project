@@ -36,6 +36,7 @@ function defaultState() {
     placeId: 'pond',
     weather: '晴',
     time: '清晨',
+    _bait: 'bread',  // 默认选中的鱼饵（首次玩不会卡在"请选鱼饵"）
   };
 }
 
