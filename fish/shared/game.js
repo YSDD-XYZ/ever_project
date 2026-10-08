@@ -300,13 +300,9 @@ function spawnFloatText(text, color){
   setTimeout(()=>node.remove(), 1700);
 }
 function hintAt(text, ms=1200){
-  const h = $('hint'); h.textContent = text;
-  h.style.opacity = '';  // 清除内联样式，让 CSS .show 生效
-  h.classList.add('show');
-  setTimeout(() => {
-    h.classList.remove('show');
-    h.textContent = '选择地点与鱼饵，按下「抛竿」开始 🎣';
-  }, ms);
+  // 新 UI：hint 元素已移除，改用 toast（更不打扰）
+  toast(text);
+  if (ms > 0) setTimeout(() => { /* toast 由 util.toast 自动消失 */ }, ms);
 }
 
 function resetAfterAction(){
