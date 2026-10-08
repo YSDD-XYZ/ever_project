@@ -29,7 +29,7 @@ function renderPlaces(){
     const cls = 'place' + (state.placeId===p.id?' active':'') + (unlock?'':' locked');
     const node = el('div', { class: cls, onclick: ()=>{
       if (!unlock) { toast('需要等级 '+(p.req.lv||0)+(p.req.money?' 且 '+p.req.money+' 金币':'')); return; }
-      state.placeId = p.id; state.places[p.id] = (state.places[p.id]||0);
+      state.placeId = p.id; state.places[p.id] = (state.places[p.id]||0) + 1;
       renderHUD(); renderPlaces();
     }},
       el('h4', {}, p.name + (unlock?'':' 🔒')),
