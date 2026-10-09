@@ -2,6 +2,9 @@
 # scripts/sync-shared.sh
 # 把 shared/ 里的源文件同步到 web/src/ 与 mobile/src/
 # 在修改 shared/ 后跑一次，或重定向到 pre-commit hook
+#
+# 注：shared/vendor/ 已在 v2.x 删除（2D 场景无外部依赖）。
+#     mobile/sw.js PWA cache 也已移除 vendor 路径。
 
 set -euo pipefail
 
@@ -19,15 +22,4 @@ for target in "$ROOT/web/src" "$ROOT/mobile/src"; do
   done
 done
 
-# vendor：three.js / OrbitControls 等本地依赖（避免 CDN 不可用）
-for target in "$ROOT/web" "$ROOT/mobile"; do
-  mkdir -p "$target/vendor"
-  for vendor in "$SHARED/vendor"/*.js; do
-    [ -f "$vendor" ] || continue
-    name="$(basename "$vendor")"
-    cp "$vendor" "$target/vendor/$name"
-    echo "vendored $target/vendor/$name"
-  done
-done
-
-echo "✓ shared/ → web/src + mobile/src/ + vendor/"
+echo "✓ shared/ → web/src + mobile/src/"
