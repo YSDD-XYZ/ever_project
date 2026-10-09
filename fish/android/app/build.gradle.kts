@@ -51,10 +51,10 @@ android {
         jvmTarget = "17"
     }
 
-    // 静态资源从 ../mobile/ 同步过来,避免重复
+    // 静态资源从 src/main/assets/ 加载（由 scripts/sync-mobile-to-android.sh 从 ../mobile/ 同步）
     sourceSets {
         getByName("main") {
-            assets.srcDirs("../../mobile", "src/main/assets")
+            assets.srcDirs("src/main/assets")
         }
     }
 }

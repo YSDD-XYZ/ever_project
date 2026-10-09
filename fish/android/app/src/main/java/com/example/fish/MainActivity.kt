@@ -18,8 +18,6 @@ import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
-import androidx.webkit.WebSettingsCompat
-import androidx.webkit.WebViewFeature
 
 /**
  * MainActivity —— 钓鱼游戏 Android 端入口
@@ -73,9 +71,12 @@ class MainActivity : AppCompatActivity() {
             useWideViewPort = true
             loadWithOverviewMode = true
         }
-        // 离屏渲染（可选）
-        if (WebViewFeature.isFeatureSupported(WebViewFeature.OFF_SCREEN_PRE_RENDER)) {
-            WebSettingsCompat.setOffscreenPreRaster(webView.settings, true)
+        // 离屏渲染（API 23+）：通过反射调用避免硬性依赖
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try {
+                val method = webView.javaClass.getMethod("setOffscreenPreRaster", Boolean::class.javaPrimitiveType)
+                method.invoke(webView, true)
+            } catch (_: Throwable) { /* 部分设备/版本不支持，忽略 */ }
         }
 
         // JS 桥：暴露 vibrate / share / exit
