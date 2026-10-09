@@ -1,0 +1,14 @@
+<resources>
+    <!-- 暗色:深棕底 + 焦糖橘强调 -->
+    <color name="cream_50">#1B1612</color>     <!-- 背景 -->
+    <color name="cream_100">#26201A</color>    <!-- 卡片底 -->
+    <color name="cream_200">#3A3127</color>    <!-- 分隔 -->
+    <color name="ink_900">#F7F1E5</color>     <!-- 主文字 -->
+    <color name="ink_700">#C7B89C</color>     <!-- 次文字 -->
+    <color name="ink_500">#8E7A5E</color>
+    <color name="caramel_500">#E0A766</color>
+    <color name="caramel_600">#C77F3A</color>
+    <color name="caramel_100">#3A2C1F</color>
+    <color name="rose_500">#E08585</color>
+    <color name="teal_legacy">#00796B</color>
+</resources>

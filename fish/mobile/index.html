@@ -68,7 +68,7 @@
   /* ---------- 3D 场景：铺满全屏 ---------- */
   .stage {
     position: fixed; inset: 0;
-    background: linear-gradient(180deg, #87ceeb 0%, #b0e0e6 50%, #4682b4 100%);
+    background: linear-gradient(180deg, #6a8caf 0%, #8fa8c2 50%, #3a5a7e 100%);
     overflow: hidden;
   }
 
@@ -77,10 +77,10 @@
     position: absolute; inset: 0;
     pointer-events: none;
   }
-  .sky.weather-晴 { background: linear-gradient(180deg, #87ceeb 0%, #b0e0e6 60%, transparent 100%); }
-  .sky.weather-雨 { background: linear-gradient(180deg, #4a5568 0%, #718096 50%, transparent 100%); }
-  .sky.weather-雾 { background: linear-gradient(180deg, #a0aec0 0%, #cbd5e0 50%, transparent 100%); }
-  .sky.weather-雪 { background: linear-gradient(180deg, #cbd5e0 0%, #e2e8f0 50%, transparent 100%); }
+  .sky.weather-晴 { background: linear-gradient(180deg, #6a8caf 0%, #8fa8c2 60%, transparent 100%); }
+  .sky.weather-雨 { background: linear-gradient(180deg, #3d4f63 0%, #5a6b80 50%, transparent 100%); }
+  .sky.weather-雾 { background: linear-gradient(180deg, #6e7886 0%, #8a93a0 50%, transparent 100%); }
+  .sky.weather-雪 { background: linear-gradient(180deg, #8a96a8 0%, #b0bcc8 50%, transparent 100%); }
   .far { position: absolute; inset: 0; pointer-events: none; }
   .sun, .moon {
     position: absolute; top: 8%; right: 15%;
@@ -134,7 +134,7 @@
   .water {
     position: absolute; left: 0; right: 0; bottom: 0;
     height: 35%;
-    background: linear-gradient(180deg, #4a90c8 0%, #2e6da4 50%, #1e4a7a 100%);
+    background: linear-gradient(180deg, #4a6890 0%, #345680 50%, #1e3258 100%);
     overflow: hidden;
   }
   .water::before {
@@ -314,21 +314,23 @@
 
   /* ---------- 顶左 HUD：钱币 + 等级（浮在 3D 上） ---------- */
   .hud {
-    position: fixed; top: 12px; left: 12px;
+    position: fixed; top: max(12px, env(safe-area-inset-top, 12px));
+    left: 12px;
     z-index: 5;
-    display: flex; flex-direction: column; gap: 6px;
+    display: flex; flex-direction: row; align-items: center; gap: 8px;
     pointer-events: none;
   }
   .hud > * { pointer-events: auto; }
   .coin {
     display: inline-flex; align-items: center; gap: 5px;
-    padding: 4px 12px 4px 10px;
-    background: linear-gradient(135deg, rgba(255,209,102,.25), rgba(255,140,80,.2));
-    border: 1px solid rgba(255,209,102,.45);
+    padding: 5px 12px 5px 9px;
+    background: linear-gradient(135deg, rgba(255,209,102,.28), rgba(255,140,80,.22));
+    border: 1px solid rgba(255,209,102,.5);
     border-radius: var(--r-pill);
-    box-shadow: 0 2px 10px rgba(255,180,80,.2);
+    box-shadow: 0 2px 10px rgba(255,180,80,.25);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   }
-  .coin::before { content: '💰'; font-size: 14px; }
+  .coin .ic { font-size: 16px; }
   .coin b {
     color: #ffe28a; font-weight: 800; font-size: 16px;
     font-variant-numeric: tabular-nums;
@@ -336,17 +338,17 @@
     min-width: 1.5em; text-align: right;
   }
   .lv {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 4px 10px;
-    background: rgba(15, 28, 50, .65);
-    border: 1px solid rgba(91,227,194,.4);
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 10px;
+    background: rgba(15, 28, 50, .75);
+    border: 1px solid rgba(91,227,194,.5);
     border-radius: var(--r-pill);
-    color: var(--primary);
-    font-size: 11px; font-weight: 700;
+    color: #fff;
+    font-size: 12px; font-weight: 800;
     backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   }
-  .lv > span { color: #fff; }
-  .lv > span b { font-weight: 800; }
+  .lv .lvlbl { color: var(--primary); font-weight: 700; }
+  .xp-wrap { display: none; }  /* 顶栏不显示 xp，留给更专门的 view */
   .xp-track {
     display: inline-block; width: 40px; height: 4px;
     background: rgba(255,255,255,.12);
@@ -361,29 +363,32 @@
 
   /* ---------- 顶右：齿轮按钮 ---------- */
   .gear {
-    position: fixed; top: 12px; right: 12px;
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top, 12px));
+    right: 12px;
     z-index: 6;
-    width: 32px; height: 32px;
+    width: 36px; height: 36px;
     border-radius: 50%;
-    background: rgba(15, 28, 50, .55);
+    background: rgba(15, 28, 50, .65);
     border: 1px solid var(--border);
     color: var(--text-2);
-    font-size: 16px; line-height: 1;
+    font-size: 18px; line-height: 1;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     transition: background .15s, transform .15s;
     backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   }
-  .gear:active { background: rgba(91,227,194,.2); transform: rotate(60deg); }
+  .gear:active { background: rgba(91,227,194,.25); transform: rotate(60deg); }
 
-  /* ---------- 底中：环境条幅 ---------- */
+  /* ---------- 底中：环境条幅（往上挪，让位给底部按钮） ---------- */
   .env-bar {
-    position: fixed; left: 50%; bottom: 14px;
+    position: fixed; left: 50%;
+    bottom: calc(max(14px, env(safe-area-inset-bottom, 14px)) + 130px);
     transform: translateX(-50%);
-    display: flex; gap: 10px;
-    padding: 6px 14px;
-    background: rgba(0,0,0,.5);
-    border: 1px solid rgba(255,255,255,.1);
+    display: flex; gap: 6px;
+    padding: 5px 12px;
+    background: rgba(0,0,0,.55);
+    border: 1px solid rgba(255,255,255,.12);
     border-radius: var(--r-pill);
     color: var(--text-2);
     font-size: 11px;
@@ -391,15 +396,19 @@
     pointer-events: auto;
     backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     white-space: nowrap;
+    box-shadow: 0 2px 12px rgba(0,0,0,.4);
   }
-  .env-bar b { color: var(--text); font-weight: 600; }
+  .env-bar b { color: var(--text); font-weight: 700; }
+  .env-bar span { display: inline-flex; align-items: center; gap: 3px; }
 
-  /* ---------- 底部左：鱼饵（横滑条） ---------- */
+  /* ---------- 底部左：鱼饵（横滑条，5 圆） ---------- */
   .bait-row {
-    position: fixed; left: 8px; bottom: 16px;
+    position: fixed; left: 8px;
+    bottom: max(14px, env(safe-area-inset-bottom, 14px));
     display: flex; gap: 6px;
     z-index: 5;
-    max-width: calc(50% - 16px);
+    width: calc(50% - 16px);
+    max-width: 240px;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
@@ -409,7 +418,7 @@
   .bait-row::-webkit-scrollbar { display: none; }
   .bait {
     flex: 0 0 auto;
-    width: 44px; height: 44px;
+    width: 46px; height: 46px;
     border-radius: 50%;
     border: 2px solid transparent;
     cursor: pointer;
@@ -444,9 +453,11 @@
 
   /* ---------- 底右：抛杆 FAB（巨大圆形 + cooldown 圆环） ---------- */
   .cast-fab {
-    position: fixed; right: 16px; bottom: 12px;
+    position: fixed;
+    right: calc(env(safe-area-inset-right, 0px) + 14px);
+    bottom: calc(max(14px, env(safe-area-inset-bottom, 14px)) + 14px);
     z-index: 5;
-    width: 76px; height: 76px;
+    width: 68px; height: 68px;
     border-radius: 50%;
     border: none; cursor: pointer;
     background: radial-gradient(circle at 50% 35%, #ffcb80 0%, #ff7a59 70%, #d04a30 100%);
@@ -480,40 +491,42 @@
     filter: drop-shadow(0 2px 4px rgba(0,0,0,.3));
   }
 
-  /* 抛杆 FAB 左边的辅助按钮（竖排） */
-  .side-btns {
-    position: fixed; right: 100px; bottom: 22px;
-    display: flex; flex-direction: column; gap: 8px;
-    z-index: 5;
-  }
+  /* 抛杆 FAB 左边的辅助按钮（紧贴抛杆左右两侧） */
   .reel-btn {
-    width: 44px; height: 44px;
+    position: fixed;
+    right: calc(env(safe-area-inset-right, 0px) + 16px + 90px + 8px);
+    bottom: calc(max(14px, env(safe-area-inset-bottom, 14px)) + 22px);
+    width: 50px; height: 50px;
     border-radius: 50%;
-    background: rgba(91,227,194,.85);
+    background: rgba(91,227,194,.9);
     border: 1px solid var(--primary);
     color: #0a1e36;
-    font-size: 18px; line-height: 1; font-weight: 800;
+    font-size: 20px; line-height: 1; font-weight: 800;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 12px rgba(91,227,194,.4);
+    box-shadow: 0 4px 14px rgba(91,227,194,.4);
     transition: transform .1s, opacity .2s;
+    z-index: 5;
   }
   .reel-btn:not(:disabled):active { transform: scale(.92); }
   .reel-btn:disabled { opacity: 0; pointer-events: none; transform: scale(.8); }
 
   .power-btn {
-    position: relative;
-    width: 44px; height: 44px;
+    position: fixed;
+    right: calc(env(safe-area-inset-right, 0px) + 16px);
+    bottom: calc(max(14px, env(safe-area-inset-bottom, 14px)) + 78px);
+    width: 46px; height: 46px;
     border-radius: 50%;
-    background: rgba(15, 28, 50, .75);
-    border: 1px solid rgba(91,227,194,.4);
+    background: rgba(15, 28, 50, .8);
+    border: 1px solid rgba(91,227,194,.5);
     color: var(--accent);
-    font-weight: 800; font-size: 12px;
+    font-weight: 800; font-size: 13px;
     cursor: pointer;
     overflow: hidden;
     display: flex; align-items: center; justify-content: center;
     transition: background .15s, transform .1s;
     backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    z-index: 5;
   }
   .power-btn:active { background: rgba(91,227,194,.2); transform: scale(.92); }
   .power-btn svg {
@@ -903,22 +916,28 @@
   <!-- 2D 场景容器（由 scene.js mount DOM） -->
   <div class="stage" id="stage"></div>
 
-  <!-- 顶左：钱币 + 等级（浮在 3D 上） -->
+  <!-- 顶左：钱币 + 等级（更大、更清晰） -->
   <div class="hud">
-    <div class="coin"><b id="hud-money">0</b></div>
+    <div class="coin">
+      <span class="ic">💰</span>
+      <b id="hud-money">0</b>
+    </div>
     <div class="lv">
-      <span>Lv.<b id="hud-level">1</b></span>
+      <span class="lvlbl">Lv.</span>
+      <b id="hud-level">1</b>
+    </div>
+    <div class="xp-wrap">
       <i class="xp-track"><i id="hud-xp"></i></i>
     </div>
   </div>
 
-  <!-- 顶右：齿轮按钮（极小、悬浮） -->
+  <!-- 顶右：齿轮按钮 -->
   <button class="gear" id="btn-menu" aria-label="设置">⚙</button>
 
-  <!-- 底左：鱼饵（横滑条） -->
+  <!-- 底左：鱼饵（5 个圆形，emoji + 计数） -->
   <div class="bait-row" id="bait-row"></div>
 
-  <!-- 底右：抛杆 FAB（巨大圆形，cooldown 圆环） -->
+  <!-- 底右：抛杆主按钮（巨大） -->
   <button class="cast-fab" id="cast" aria-label="抛竿">
     <svg class="cast-svg" viewBox="0 0 100 100">
       <circle cx="50" cy="50" r="46" class="ring-bg"/>
@@ -928,17 +947,15 @@
     <span class="cast-icon">🎣</span>
   </button>
 
-  <!-- 抛杆 FAB 旁边的辅助按钮：收线（仅 cooldown 期间显示） + 力度 -->
-  <div class="side-btns">
-    <button class="reel-btn" id="reel" disabled>↩</button>
-    <button class="power-btn" id="power-btn" aria-label="力度">
-      <svg viewBox="0 0 100 100">
-        <path id="power-arc" d="" class="arc-bg"/>
-        <path id="power-arc-fill" d="" class="arc-fill"/>
-      </svg>
-      <b id="power-val">60</b>
-    </button>
-  </div>
+  <!-- 抛杆旁：收线（cooldown 时出现）+ 力度（直接嵌在抛杆上） -->
+  <button class="reel-btn" id="reel" disabled>↩</button>
+  <button class="power-btn" id="power-btn" aria-label="力度">
+    <svg viewBox="0 0 100 100">
+      <path id="power-arc" d="" class="arc-bg"/>
+      <path id="power-arc-fill" d="" class="arc-fill"/>
+    </svg>
+    <b id="power-val">60</b>
+  </button>
 
   <!-- 底中：环境条幅（地点 / 天气 / 时段 一行） -->
   <div class="env-bar" id="env-bar">

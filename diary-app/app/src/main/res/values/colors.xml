@@ -1,0 +1,14 @@
+<resources>
+    <!-- 暖色调:奶油米黄底 + 焦糖橘强调 -->
+    <color name="cream_50">#FFFBF5</color>     <!-- 背景 -->
+    <color name="cream_100">#F7F1E5</color>    <!-- 卡片底 -->
+    <color name="cream_200">#EFE6D2</color>    <!-- 分隔/描边 -->
+    <color name="ink_900">#2B2118</color>     <!-- 主文字 -->
+    <color name="ink_700">#5C4A36</color>     <!-- 次文字 -->
+    <color name="ink_500">#8E7A5E</color>     <!-- 弱文字 / 时间 -->
+    <color name="caramel_500">#C77F3A</color>  <!-- 主强调(按钮、标签、FAB) -->
+    <color name="caramel_600">#A55F22</color>  <!-- 主强调按下 -->
+    <color name="caramel_100">#F5E4CC</color>   <!-- 强调淡底(Chip 背景) -->
+    <color name="rose_500">#B85C5C</color>    <!-- 删除/红色警告 -->
+    <color name="teal_legacy">#00796B</color>  <!-- 旧值,保留防止崩溃 -->
+</resources>

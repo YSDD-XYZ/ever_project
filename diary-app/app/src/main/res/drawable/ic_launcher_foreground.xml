@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  "拾光" logo vector — 羽毛笔 + 翻开本子 + 墨点
+  108×108 viewport,前景图;背景由 adaptive-icon 的 background drawable 给。
+  米色 / 焦糖橘 / 暖灰,延续主 App 调色。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 翻开本子的左页(米色) -->
+    <path
+        android:fillColor="#F7F1E5"
+        android:pathData="M28,38 L54,32 L54,76 L28,82 Z" />
+
+    <!-- 翻开本子的右页(略深一点,有层次) -->
+    <path
+        android:fillColor="#EFE6D2"
+        android:pathData="M54,32 L80,38 L80,82 L54,76 Z" />
+
+    <!-- 中线 -->
+    <path
+        android:fillColor="#C8B89C"
+        android:pathData="M54,32 L54,76"
+        android:strokeWidth="0.8" />
+
+    <!-- 左页的三条横线(墨字) -->
+    <path
+        android:fillColor="#5C4A36"
+        android:pathData="M34,48 L48,46 L48,47.2 L34,49.2 Z" />
+    <path
+        android:fillColor="#5C4A36"
+        android:pathData="M34,54 L48,52 L48,53.2 L34,55.2 Z" />
+    <path
+        android:fillColor="#5C4A36"
+        android:pathData="M34,60 L46,58 L46,59.2 L34,61.2 Z" />
+
+    <!-- 羽毛笔杆(焦糖橘,斜插) -->
+    <path
+        android:fillColor="#C77F3A"
+        android:pathData="M58,46 L82,30 L84,32 L60,48 Z" />
+
+    <!-- 笔尖(深棕) -->
+    <path
+        android:fillColor="#2B2118"
+        android:pathData="M58,46 L60,48 L57,49 L56,48 Z" />
+
+    <!-- 羽毛(浅米,顶端弧) -->
+    <path
+        android:fillColor="#F7F1E5"
+        android:pathData="M75,33 Q82,28 86,30 Q83,34 80,35 Q78,34 75,33 Z" />
+
+    <!-- 落墨点(三颗,大小不一) -->
+    <path
+        android:fillColor="#2B2118"
+        android:pathData="M42,72 m-1.6,0 a1.6,1.6 0 1,0 3.2,0 a1.6,1.6 0 1,0 -3.2,0" />
+    <path
+        android:fillColor="#2B2118"
+        android:pathData="M48,75 m-0.9,0 a0.9,0.9 0 1,0 1.8,0 a0.9,0.9 0 1,0 -1.8,0" />
+    <path
+        android:fillColor="#5C4A36"
+        android:pathData="M38,76 m-0.7,0 a0.7,0.7 0 1,0 1.4,0 a0.7,0.7 0 1,0 -1.4,0" />
+</vector>
