@@ -2,12 +2,18 @@
 
 个人项目集(mono-repo)。每个子目录都是一个独立工程。
 
+## 在线入口
+
+🎯 **项目集**: [https://ysdd-xyz.github.io/ever_project/web/portal.html](https://ysdd-xyz.github.io/ever_project/web/portal.html)
+- 卡片式浏览所有项目,点击进入
+- 鱼游戏页顶部有"返回项目集"导航
+
 ## 子项目
 
-| 目录 | 名称 | 平台 | 说明 |
-|---|---|---|---|
-| `fish/` | 钓鱼游戏 | Web / Mobile (PWA) / Android (新增) | 轻松有趣,2D 场景,丰富内容(36 鱼/9 地点/22 成就/5 每日任务) |
-| `diary-app/` | 时光日记 | Android (Kotlin / Room) | 本地日记 App,密码 + 指纹,标签 / 计划 / 日历同步 |
+| 目录 | 名称 | 平台 | 入口 | 说明 |
+|---|---|---|---|---|
+| `fish/` | 湖边垂钓 | Web / Mobile (PWA) / Android | [web/portal.html](fish/web/portal.html) | 2D 钓鱼游戏,36 鱼/9 地点/22 成就/每日任务 |
+| `diary-app/` | 时光日记 | Android (Kotlin / Room) | [diary-app/README.md](diary-app/README.md) | 本地日记,密码 + 指纹,标签 / 计划 / 日历同步 |
 
 ## 目录约定
 
@@ -17,5 +23,8 @@
 
 ## 部署
 
-- `fish/` → GitHub Pages (https://ysdd-xyz.github.io/ever_project/)
-- `diary-app/` → Android APK (见各子目录)
+- `fish/web/` → GitHub Pages (https://ysdd-xyz.github.io/ever_project/)
+  - `portal.html` = 项目集入口
+  - `index.html` = 钓鱼游戏(带顶部项目导航)
+- `fish/android/` → APK (`fish/dist/`)
+- `diary-app/` → Android APK (见子目录)

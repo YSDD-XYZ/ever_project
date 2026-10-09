@@ -2,28 +2,21 @@
 
 > 湖畔垂钓的桌面浏览器版。适合鼠标拖拽 OrbitControls、键盘快捷键、侧边按钮布局。
 
-![web home](../../screenshots/web-01-home.png)
+![web home](../../screenshots/web-with-portal-nav.png)
 
 ## 📦 内容
 
 ```
 web/
-├── index.html                  # 入口（importmap + module main）
+├── index.html                  # 钓鱼游戏入口（带顶部项目导航）
+├── portal.html                 # 项目集入口（卡片式）
+├── favicon.svg
 ├── LICENSE                     # MIT
 ├── README.md
-├── public/                     # （可选）静态资源
-├── src/
-│   ├── main.js                 # 端点入口：绑定事件 / 启动 3D / onboard
-│   ├── ui.js                   # HUD / 地点 / 鱼饵 / 5 个模态
-│   ├── state.js, util.js, data.js, audio.js
-│   ├── game.js, scene.js
-│   ├── savecode.js, slots.js, validate.js
-│   └── vendor/                 # Three.js / OrbitControls / Reflector
+├── src/                        # 见下方
 ```
 
-> `src/` 下有 11 个 JS 模块，其中 **9 个是 `shared/` 的同步副本**（由 `sync-shared.sh` 自动维护）。
->
-> 端点专属文件只有 2 个：`main.js` 和 `ui.js`。
+> 进入 `portal.html` 查看**所有项目**（鱼游戏 / 时光日记 / 文档）。游戏页 `index.html` 顶部也加了导航条，可一键返回 portal。
 
 ## 🚀 启动
 

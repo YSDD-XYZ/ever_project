@@ -6,8 +6,38 @@
 <title>湖畔垂钓 · 轻松钓鱼</title>
 <link rel="icon" type="image/svg+xml" href="./favicon.svg">
 <!-- importmap：2D 场景无外部依赖 -->
+<script>
+  // 如果没带 ?play=1 参数,显示项目集入口链接(不是强制跳转,避免游戏体验被破坏)
+  if (!new URL(location.href).searchParams.has('play') && !sessionStorage.getItem('__fishSeen')) {
+    sessionStorage.setItem('__fishSeen', '1');
+  }
+</script>
 <script type="module" src="./src/main.js"></script>
 <script>window.__storagePrefix = 'fishing_web';</script>
+<style>
+  /* ---------- 顶部项目导航(悬浮) ---------- */
+  .portal-nav {
+    position: fixed; top: 12px; left: 12px; z-index: 999;
+    display: flex; gap: 6px;
+    padding: 6px 8px;
+    background: rgba(8,17,29,.78);
+    border: 1px solid rgba(91,227,194,.3);
+    border-radius: var(--r-pill);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    font-size: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.3);
+  }
+  .portal-nav a {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px;
+    border-radius: var(--r-pill);
+    color: var(--text-2);
+    transition: background .15s, color .15s;
+  }
+  .portal-nav a:hover { background: rgba(91,227,194,.15); color: var(--primary); }
+  .portal-nav a.active { background: rgba(91,227,194,.2); color: var(--primary); font-weight: 700; }
+  .portal-nav .sep { color: var(--text-3); padding: 0 2px; }
+</style>
 <style>
   /* ==========================================================
         设计系统（Design Tokens）
@@ -1044,6 +1074,33 @@
 </style>
 </head>
 <body>
+
+<!-- 顶部项目导航条(进入 portal / 切换项目) -->
+<nav class="portal-nav" id="portal-nav" hidden>
+  <a href="./portal.html" title="返回项目集">🏠 项目集</a>
+  <span class="sep">·</span>
+  <a href="./?play=1" class="active">🎣 钓鱼</a>
+  <span class="sep">·</span>
+  <a href="https://github.com/YSDD-XYZ/ever_project/tree/main/diary-app" target="_blank" rel="noopener">📓 时光日记</a>
+</nav>
+
+<script>
+  // 等待游戏主入口已注册保存功能后再显示导航条,避免遮挡交互
+  setTimeout(() => {
+    const nav = document.getElementById('portal-nav');
+    if (nav) {
+      nav.hidden = false;
+      // 关闭按钮 + 隐藏一周
+      const dismiss = document.createElement('a');
+      dismiss.href = 'javascript:void(0)';
+      dismiss.title = '本次访问不再显示';
+      dismiss.textContent = '✕';
+      dismiss.onclick = () => { nav.style.display = 'none'; };
+      nav.appendChild(document.createTextNode(' '));
+      nav.appendChild(dismiss);
+    }
+  }, 2000);
+</script>
 
   <!-- 顶部 -->
   <div class="hud">

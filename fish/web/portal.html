@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ever_project · 项目集</title>
+<link rel="icon" type="image/svg+xml" href="./favicon.svg">
+<style>
+  /* ============= 设计系统 ============= */
+  :root {
+    --bg: #08111d;
+    --bg-2: #0a1e36;
+    --surface: rgba(20, 38, 64, 0.62);
+    --border: rgba(255, 255, 255, 0.10);
+    --text: #e8eef7;
+    --text-2: #aab6c8;
+    --text-3: #6e7c8e;
+    --primary: #5BE3C2;
+    --primary-2: #3a8bff;
+    --accent: #FFE28A;
+    --danger: #ff6b6b;
+    --r-md: 12px;
+    --r-lg: 20px;
+    --r-pill: 999px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font: 15px/1.6 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 0%, #1f3f66 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 100% 100%, #2a1a4e 0%, transparent 60%),
+      linear-gradient(180deg, var(--bg) 0%, #050b14 100%);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; }
+
+  /* ============= 顶部 ============= */
+  header.hero {
+    max-width: 1200px; margin: 0 auto; padding: 56px 24px 32px;
+  }
+  .brand {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 6px 14px;
+    background: rgba(91,227,194,.1);
+    border: 1px solid rgba(91,227,194,.3);
+    border-radius: var(--r-pill);
+    color: var(--primary);
+    font-size: 13px; font-weight: 700;
+  }
+  .brand .dot { width:8px; height:8px; border-radius:50%; background:var(--primary); box-shadow:0 0 10px var(--primary); }
+  h1 {
+    margin: 16px 0 8px;
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 800;
+    background: linear-gradient(135deg, #5BE3C2 0%, #FFE28A 50%, #3a8bff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    letter-spacing: -0.02em;
+  }
+  .tagline { color: var(--text-2); max-width: 600px; }
+
+  /* ============= 项目卡片 ============= */
+  .grid {
+    max-width: 1200px; margin: 0 auto; padding: 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 24px;
+    overflow: hidden;
+    transition: transform .2s, border-color .2s, box-shadow .2s;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary);
+    box-shadow: 0 20px 50px rgba(91,227,194,.15);
+  }
+  .card .glow {
+    position: absolute; inset: -1px;
+    background: linear-gradient(135deg, transparent 0%, rgba(91,227,194,.05) 50%, transparent 100%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .3s;
+  }
+  .card:hover .glow { opacity: 1; }
+  .card .emoji { font-size: 48px; line-height: 1; margin-bottom: 12px; }
+  .card h2 {
+    font-size: 20px; font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .card .meta {
+    font-size: 11px; font-weight: 700;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+  }
+  .card .meta .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba(255,255,255,.05);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    margin-right: 4px;
+  }
+  .card .desc {
+    color: var(--text-2);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+    min-height: 64px;
+  }
+  .card .stats {
+    display: flex; gap: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    margin-bottom: 16px;
+    font-size: 12px;
+    color: var(--text-3);
+  }
+  .card .stats b { color: var(--text); display: block; font-size: 18px; font-weight: 800; }
+  .card .actions {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,.04);
+    color: var(--text);
+    font-size: 13px; font-weight: 700;
+    transition: background .15s, border-color .15s, transform .1s;
+  }
+  .btn:hover { background: rgba(91,227,194,.12); border-color: var(--primary); }
+  .btn:active { transform: scale(.97); }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--primary) 0%, #3a8bff 100%);
+    color: #0a1e36;
+    border-color: transparent;
+  }
+  .btn.primary:hover { filter: brightness(1.1); }
+  .btn.ghost {
+    background: transparent;
+    color: var(--text-2);
+  }
+  .card.disabled { opacity: .55; }
+  .card.disabled .btn { pointer-events: none; }
+  .card .soon {
+    position: absolute; top: 18px; right: 18px;
+    background: rgba(255,209,102,.15);
+    color: var(--accent);
+    font-size: 10px; font-weight: 800;
+    padding: 3px 8px;
+    border-radius: var(--r-pill);
+    border: 1px solid rgba(255,209,102,.3);
+    text-transform: uppercase;
+  }
+
+  /* ============= 项目特性 chip ============= */
+  .features {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    margin-bottom: 14px;
+  }
+  .chip {
+    font-size: 11px; font-weight: 600;
+    padding: 3px 8px;
+    border-radius: var(--r-pill);
+    background: rgba(91,227,194,.1);
+    color: var(--primary);
+    border: 1px solid rgba(91,227,194,.2);
+  }
+  .chip.accent { background: rgba(255,209,102,.1); color: var(--accent); border-color: rgba(255,209,102,.2); }
+  .chip.secondary { background: rgba(58,139,255,.1); color: var(--primary-2); border-color: rgba(58,139,255,.2); }
+
+  /* ============= 底栏 ============= */
+  footer {
+    max-width: 1200px; margin: 32px auto 0; padding: 24px;
+    text-align: center;
+    color: var(--text-3);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+  }
+  footer a { color: var(--text-2); }
+  footer a:hover { color: var(--primary); }
+
+  /* ============= 链接区 ============= */
+  .links {
+    max-width: 1200px; margin: 24px auto; padding: 0 24px;
+    display: flex; flex-wrap: wrap; gap: 12px;
+  }
+  .links a {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    color: var(--text-2);
+    font-size: 13px;
+    transition: color .15s, border-color .15s;
+  }
+  .links a:hover { color: var(--primary); border-color: var(--primary); }
+
+  /* ============= responsive ============= */
+  @media (max-width: 640px) {
+    header.hero { padding: 32px 16px 16px; }
+    .grid { padding: 16px; gap: 14px; }
+    .card { padding: 18px; }
+    .card .emoji { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <span class="brand"><span class="dot"></span>ever_project</span>
+  <h1>个人项目集</h1>
+  <p class="tagline">一个 mono-repo，多个独立工程。每个项目都有自己的 README、构建配置和发布版本。</p>
+</header>
+
+<nav class="links">
+  <a href="https://github.com/YSDD-XYZ/ever_project" target="_blank" rel="noopener">📦 GitHub 仓库</a>
+  <a href="./?play=1">🎮 立即进钓鱼游戏</a>
+  <a href="./README.md">📖 仓库 README</a>
+  <a href="./fish/README.md">🐟 fish 文档</a>
+  <a href="./diary-app/README.md">📓 时光日记文档</a>
+</nav>
+
+<main class="grid">
+
+  <!-- ============= 钓鱼游戏 ============= -->
+  <article class="card">
+    <div class="glow"></div>
+    <div class="emoji">🎣</div>
+    <h2>湖边垂钓</h2>
+    <div class="meta">
+      <span class="pill">Web / PWA / Android</span>
+      <span class="pill">v0.8.0</span>
+    </div>
+    <p class="desc">轻松有趣的 2D 钓鱼游戏。36 种鱼、9 个地点、6 款鱼竿、8 种鱼饵、22 项成就、每日任务、收藏段位、季节系统、难度梯度。</p>
+    <div class="features">
+      <span class="chip">2D 场景</span>
+      <span class="chip">PWA 离线</span>
+      <span class="chip accent">22 成就</span>
+      <span class="chip">每日任务</span>
+      <span class="chip secondary">Android</span>
+    </div>
+    <div class="stats">
+      <div><b id="fish-stat-1">—</b>鱼种</div>
+      <div><b id="fish-stat-2">—</b>地点</div>
+      <div><b id="fish-stat-3">—</b>成就</div>
+    </div>
+    <div class="actions">
+      <a class="btn primary" href="./?play=1">▶ 立即开玩</a>
+      <a class="btn" href="./src/main.js" target="_blank">📄 源代码</a>
+      <a class="btn ghost" href="https://github.com/YSDD-XYZ/ever_project/tree/main/fish" target="_blank">↗ GitHub</a>
+    </div>
+  </article>
+
+  <!-- ============= 时光日记 ============= -->
+  <article class="card">
+    <div class="glow"></div>
+    <div class="emoji">📓</div>
+    <h2>时光日记</h2>
+    <div class="meta">
+      <span class="pill">Android / Kotlin</span>
+      <span class="pill">v0.8.0</span>
+    </div>
+    <p class="desc">本地日记 App，密码 + 指纹保护。标签 / 计划 / 日历同步。Room 数据库可移植。Material 3 设计。</p>
+    <div class="features">
+      <span class="chip">Kotlin</span>
+      <span class="chip">Room</span>
+      <span class="chip accent">AES-256</span>
+      <span class="chip">指纹 / 面容</span>
+      <span class="chip secondary">Material 3</span>
+    </div>
+    <div class="stats">
+      <div><b>38</b>.kt 源文件</div>
+      <div><b>3,319</b>行代码</div>
+      <div><b>API 24+</b>最低支持</div>
+    </div>
+    <div class="actions">
+      <a class="btn primary" href="https://github.com/YSDD-XYZ/ever_project/tree/main/diary-app" target="_blank">📦 仓库</a>
+      <a class="btn" href="https://github.com/YSDD-XYZ/ever_project/blob/main/diary-app/README.md" target="_blank">📖 README</a>
+      <span class="btn ghost" style="opacity:.6;cursor:not-allowed;">⬇ APK（GitHub Release）</span>
+    </div>
+  </article>
+
+  <!-- ============= 文档 ============= -->
+  <article class="card">
+    <div class="glow"></div>
+    <div class="emoji">📚</div>
+    <h2>文档中心</h2>
+    <div class="meta">
+      <span class="pill">Markdown</span>
+      <span class="pill">README × 4</span>
+    </div>
+    <p class="desc">所有项目的完整文档：技术栈、目录结构、构建命令、CI 流程、贡献指南。</p>
+    <div class="features">
+      <span class="chip">fish</span>
+      <span class="chip">fish/mobile</span>
+      <span class="chip">fish/android</span>
+      <span class="chip">diary-app</span>
+    </div>
+    <div class="actions">
+      <a class="btn" href="./README.md">📄 仓库根</a>
+      <a class="btn" href="./fish/README.md">🐟 fish</a>
+      <a class="btn" href="./fish/mobile/README.md">📱 PWA</a>
+      <a class="btn" href="./fish/android/README.md">🤖 Android</a>
+      <a class="btn" href="./fish/screenshots/README.md">📸 截图</a>
+    </div>
+  </article>
+
+  <!-- ============= 占位 ============= -->
+  <article class="card disabled">
+    <div class="soon">Soon</div>
+    <div class="emoji">🚧</div>
+    <h2>更多项目</h2>
+    <div class="meta">
+      <span class="pill">规划中</span>
+    </div>
+    <p class="desc">下一个项目：日记 + 心情曲线？天气 App？AI 工具？决定后填上。</p>
+    <div class="actions">
+      <button class="btn" disabled style="cursor:not-allowed;">敬请期待</button>
+    </div>
+  </article>
+
+</main>
+
+<footer>
+  <p>
+    <a href="https://github.com/YSDD-XYZ/ever_project" target="_blank" rel="noopener">ever_project</a> ·
+    License: <a href="https://github.com/YSDD-XYZ/ever_project/blob/main/LICENSE" target="_blank" rel="noopener">MIT</a> ·
+    <a href="./LICENSE">本项目 LICENSE</a>
+  </p>
+  <p style="margin-top:6px;">© YSDD-XYZ · 由 GitHub Pages 部署</p>
+</footer>
+
+<script>
+  // 异步读取 fish 数据统计（用 ESM 动态 import）
+  (async () => {
+    try {
+      const m = await import('./src/data.js');
+      document.getElementById('fish-stat-1').textContent = m.FISH.length;
+      document.getElementById('fish-stat-2').textContent = m.PLACES.length;
+      document.getElementById('fish-stat-3').textContent = m.ACHIEVEMENTS.length;
+    } catch (e) {
+      // fallback
+      document.getElementById('fish-stat-1').textContent = '36';
+      document.getElementById('fish-stat-2').textContent = '9';
+      document.getElementById('fish-stat-3').textContent = '22';
+    }
+  })();
+</script>
+</body>
+</html>
