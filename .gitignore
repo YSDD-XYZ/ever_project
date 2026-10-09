@@ -47,6 +47,8 @@ captures/
 *.iml
 .idea/
 **/gradle-wrapper.jar.incomplete
+# APK 包输出位置(走 GitHub Release,不入 git)
+fish/dist/
 
 # 空目录占位（vendor/ 等历史 3D 残留）
 **/vendor/
