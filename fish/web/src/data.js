@@ -84,16 +84,16 @@ const NEW_FISH = [
 const NEW_PLACES = [
   { id:'swamp',   name:'雨林沼泽', weather:['雨','雾'], time:['清晨','黄昏'],
     desc:'亚马逊风格的红树林沼泽，水色深褐。能钓到电鳗和巨骨舌鱼。',
-    req:{ lv:5, money:200 }, fishChance:[50,30,15,4,0.8,0.18,0.02,0.0] },
+    req:{ lv:5, money:200 }, fishChance:[50,30,15,4,0.9,0.1] },
   { id:'glacier', name:'雪原冰湖', weather:['雪','雾'], time:['清晨','正午'],
     desc:'永冻冰层下的清冽湖水，氧气充足。极地鱼种活跃。',
-    req:{ lv:4, money:300 }, fishChance:[40,35,18,5,1.5,0.45,0.05,0.0] },
+    req:{ lv:4, money:300 }, fishChance:[40,35,18,5,1.5,0.5] },
   { id:'lava',    name:'熔岩海岸', weather:['晴'], time:['黄昏','深夜'],
     desc:'海底火山口的奇景。温度极高，只有火属性鱼类能生存。',
-    req:{ lv:8, money:2000 }, fishChance:[20,25,30,15,7,2,0.9,0.1] },
+    req:{ lv:8, money:2000 }, fishChance:[20,25,28,18,7,2] },
   { id:'abyss',   name:'深渊海沟', weather:['雾','雪'], time:['深夜'],
     desc:'阳光永远到达不了的地方。传说级鱼类偶尔出没。',
-    req:{ lv:7, money:1500 }, fishChance:[15,25,28,18,8,4,1.5,0.5] },
+    req:{ lv:7, money:1500 }, fishChance:[15,25,28,20,8,4] },
 ];
 
 // ============= 新鱼竿（4 现有 + 2 新增 = 6）=============
@@ -213,23 +213,24 @@ const BAITS = [
 ];
 
 const PLACES = [
+  // fishChance 数组：[常见, 少见, 稀有, 史诗, 神秘, 传说]（6 个稀有度, 总和 100）
   { id:'pond', name:'村边小塘', weather:['晴','雨'], time:['清晨','正午','黄昏'],
     desc:'村东头的小水塘，水浅鱼杂，适合新手。',
-    req:{ lv:1 }, fishChance:[80,15,4,1,0] },
+    req:{ lv:1 }, fishChance:[80,15,4,0.9,0.1,0] },
   { id:'lake', name:'青石湖',  weather:['晴','雨','雾'], time:['清晨','正午','黄昏','深夜'],
     desc:'群山环绕的湖泊，水深鱼肥，传说有金鳞龙出没。',
-    req:{ lv:2 }, fishChance:[55,28,12,4,1] },
+    req:{ lv:2 }, fishChance:[55,28,12,4,0.9,0.1] },
   { id:'river', name:'清溪河',  weather:['晴','雨','雾'], time:['清晨','黄昏','深夜'],
     desc:'山涧汇成的河流，水流清澈，盛产鳗鱼与水晶鳗。',
-    req:{ lv:3 }, fishChance:[40,32,12,5,1] },
+    req:{ lv:3 }, fishChance:[40,32,16,8,3,1] },
   { id:'sea', name:'蔚蓝海湾',  weather:['晴','雾'], time:['清晨','正午'],
     desc:'开阔的近海，金枪鱼与鬼头刀的狩猎场。',
-    req:{ lv:5, money:200 }, fishChance:[25,30,25,15,5] },
+    req:{ lv:5, money:200 }, fishChance:[25,30,25,15,4,1] },
   { id:'deepsea', name:'深渊之海',  weather:['晴','雾','雨'], time:['深夜','清晨','正午'],
     desc:'神秘莫测的远洋，剑鱼与灯笼鱼的舞台。',
-    req:{ lv:8, money:1500 }, fishChance:[10,20,30,25,15] },
+    req:{ lv:8, money:1500 }, fishChance:[10,20,28,25,12,5] },
   // ── 扩展地点（见 NEW_PLACES）──
-  ...NEW_PLACES
+  ...NEW_PLACES,
 ];
 
 const WEATHERS = ['晴','雨','雾','雪'];
