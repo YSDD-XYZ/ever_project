@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">番茄专注</string>
+    <string name="action_start">开始专注</string>
+    <string name="action_pause">暂停</string>
+    <string name="action_resume">继续</string>
+    <string name="action_abort">放弃</string>
+    <string name="action_break">休息</string>
+    <string name="action_history">历史</string>
+    <string name="state_idle">准备开始</string>
+    <string name="state_focus">专注中</string>
+    <string name="state_break">休息中</string>
+    <string name="state_paused">已暂停</string>
+    <string name="label_focus_min">专注时长（分钟）</string>
+    <string name="label_break_min">休息时长（分钟）</string>
+    <string name="notif_title_focus">专注进行中</string>
+    <string name="notif_title_break">休息中</string>
+    <string name="history_title">专注历史</string>
+</resources>

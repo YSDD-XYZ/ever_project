@@ -14,6 +14,11 @@
 |---|---|---|---|---|
 | `fish/` | 湖边垂钓 | Web / Mobile (PWA) / Android | [web/portal.html](fish/web/portal.html) | 2D 钓鱼游戏,36 鱼/9 地点/22 成就/每日任务 |
 | `diary-app/` | 时光日记 | Android (Kotlin / Room) | [diary-app/README.md](diary-app/README.md) | 本地日记,密码 + 指纹,标签 / 计划 / 日历同步 |
+| `pomodoro/` | 番茄专注 | Android (Kotlin) | [pomodoro/README.md](pomodoro/README.md) | 25/5 番茄钟,**完成时自动写日记** |
+
+## 跨工程事件协议
+
+鱼游戏和番茄钟都会通过 Android Broadcast 把事件发给日记 App,自动写一条带 `pomodoro` / `fish` tag 的日记。详见 [docs/EVENT_PROTOCOL.md](docs/EVENT_PROTOCOL.md)。
 
 ## 目录约定
 
@@ -24,6 +29,6 @@
 ## 部署
 
 - `fish/web/` → GitHub Pages (https://ysdd-xyz.github.io/ever_project/)
-  - `portal.html` = 工程导航（菜单栏）
-  - `index.html` = 钓鱼游戏（带顶部导航胶囊）
-- `fish/android/`、`diary-app/` → 源码仓库,无 binary 产物
+  - `portal.html` = 工程导航(菜单栏)
+  - `index.html` = 钓鱼游戏(带顶部导航胶囊)
+- `fish/android/`、`pomodoro/`、`diary-app/` → 源码仓库,无 binary 产物
