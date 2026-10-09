@@ -34,7 +34,18 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        try {
+            setupWindow()
+            setupWebView()
+            setupBackPress()
+        } catch (t: Throwable) {
+            // 任何初始化失败：显示一个静态错误页而不是闪退
+            android.util.Log.e("FishApp", "onCreate failed", t)
+            showErrorPage(t)
+        }
+    }
 
+    private fun setupWindow() {
         // 全屏沉浸
         WindowCompat.setDecorFitsSystemWindows(window, false)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -54,8 +65,11 @@ class MainActivity : AppCompatActivity() {
             )
         }
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
 
-        // 创建 WebView（不加载 layout，直接 new）
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun setupWebView() {
+        // 创建 WebView
         webView = WebView(this)
         setContentView(webView)
 
@@ -70,32 +84,71 @@ class MainActivity : AppCompatActivity() {
             cacheMode = android.webkit.WebSettings.LOAD_DEFAULT
             useWideViewPort = true
             loadWithOverviewMode = true
+            // 关闭 file:// 跨域限制(本地资源互相访问)
+            @Suppress("DEPRECATION")
+            allowFileAccessFromFileURLs = true
+            @Suppress("DEPRECATION")
+            allowUniversalAccessFromFileURLs = true
         }
-        // 离屏渲染（API 23+）：通过反射调用避免硬性依赖
+        // 关闭 WebView 黑底白字（一些设备的深色模式 bug）
+        webView.setBackgroundColor(0x00000000)
+
+        // 离屏渲染（API 23+）：反射调用,失败忽略
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 val method = webView.javaClass.getMethod("setOffscreenPreRaster", Boolean::class.javaPrimitiveType)
                 method.invoke(webView, true)
-            } catch (_: Throwable) { /* 部分设备/版本不支持，忽略 */ }
+            } catch (_: Throwable) { }
         }
 
-        // JS 桥：暴露 vibrate / share / exit
+        // JS 桥
         webView.addJavascriptInterface(JsBridge(this), "AndroidBridge")
 
-        // 加载本地资源
-        webView.webViewClient = WebViewClient()
-        webView.loadUrl("file:///android_asset/index.html")
+        // 客户端 + Console 错误捕获
+        webView.webChromeClient = object : android.webkit.WebChromeClient() {
+            override fun onConsoleMessage(msg: android.webkit.ConsoleMessage): Boolean {
+                android.util.Log.d("FishJS", "${msg.message()} @${msg.lineNumber()}")
+                return true
+            }
+        }
+        webView.webViewClient = object : WebViewClient() {
+            override fun onReceivedError(view: WebView?, req: android.webkit.WebResourceRequest?, err: android.webkit.WebResourceError?) {
+                android.util.Log.e("FishWeb", "err ${err?.errorCode} ${err?.description} url=${req?.url}")
+            }
+            override fun onPageFinished(view: WebView?, url: String?) {
+                android.util.Log.d("FishWeb", "loaded $url")
+            }
+        }
 
-        // 拦截返回键 → 让 WebView 处理（不退出 App）
+        // 加载
+        webView.loadUrl("file:///android_asset/index.html")
+    }
+
+    private fun setupBackPress() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (webView.canGoBack()) {
-                    webView.goBack()
-                } else {
-                    showExitDialog()
+                try {
+                    if (::webView.isInitialized && webView.canGoBack()) {
+                        webView.goBack()
+                    } else {
+                        showExitDialog()
+                    }
+                } catch (_: Throwable) {
+                    finish()
                 }
             }
         })
+    }
+
+    private fun showErrorPage(t: Throwable) {
+        val tv = android.widget.TextView(this).apply {
+            text = "⚠️ 启动失败\n\n${t.javaClass.simpleName}\n${t.message}\n\n请检查 Android 系统 WebView 是否已更新。"
+            setPadding(48, 96, 48, 48)
+            textSize = 16f
+            setTextColor(0xFF333333.toInt())
+            setBackgroundColor(0xFFFFF8E1.toInt())
+        }
+        setContentView(tv)
     }
 
     /**
@@ -132,37 +185,48 @@ class MainActivity : AppCompatActivity() {
  * 暴露给 window.AndroidBridge：
  * - vibrate(ms): 触发震动
  * - share(text): 调起系统分享
- * - exitConfirm(): 显示退出确认
  * - getVersion(): 返回 App 版本
+ * - isAndroid(): 平台判断
+ *
+ * 注意：所有方法都包 try/catch 防止设备/系统异常导致闪退。
+ *   使用 applicationContext 而非 activity context,避免 Activity 已 finish 时崩溃。
  */
-class JsBridge(private val ctx: Context) {
+class JsBridge(private val appCtx: Context) {
+    private val ctx: Context get() = appCtx.applicationContext
     @android.webkit.JavascriptInterface
     fun vibrate(ms: Long) {
         if (ms <= 0) return
-        val vibrator: Vibrator? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val vm = ctx.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-            vm.defaultVibrator
-        } else {
-            @Suppress("DEPRECATION")
-            ctx.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-        }
-        vibrator?.let {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                it.vibrate(VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE))
+        try {
+            val vibrator: Vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val vm = ctx.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+                vm?.defaultVibrator ?: return
             } else {
                 @Suppress("DEPRECATION")
-                it.vibrate(ms)
+                ctx.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator ?: return
             }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (!vibrator.hasVibrator()) return
+                vibrator.vibrate(VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(ms)
+            }
+        } catch (_: Throwable) {
+            // 任何设备异常都安全降级,绝不抛回 JS
         }
     }
 
     @android.webkit.JavascriptInterface
     fun share(text: String) {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, text)
+        try {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, text)
+            }
+            ctx.startActivity(Intent.createChooser(intent, "分享渔获").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        } catch (_: Throwable) {
+            // 没装能分享的 app,降级
         }
-        ctx.startActivity(Intent.createChooser(intent, "分享渔获").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
 
     @android.webkit.JavascriptInterface

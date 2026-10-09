@@ -309,8 +309,14 @@ function closeFabMenu(){
   $('btn-menu')?.setAttribute('aria-expanded', 'false');
 }
 
-// 触觉反馈：移动端 vibrate
+// 触觉反馈：移动端 vibrate。优先使用 Android 原生桥,降级到 Web Vibration API
 function vibrate(ms = 10){
+  try {
+    if (window.AndroidBridge?.vibrate) {
+      window.AndroidBridge.vibrate(ms);
+      return;
+    }
+  } catch (_) {}
   if (navigator.vibrate) navigator.vibrate(ms);
 }
 

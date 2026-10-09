@@ -8,6 +8,29 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<script>
+  // 全局错误捕获:避免一处未捕获异常导致 WebView 整个变白屏(看起来像闪退)
+  (function(){
+    function show(msg){
+      try {
+        let el = document.getElementById('__fatal');
+        if (!el) {
+          el = document.createElement('div');
+          el.id = '__fatal';
+          el.style.cssText = 'position:fixed;left:0;right:0;bottom:0;max-height:60vh;overflow:auto;padding:14px;background:#fff8e1;color:#333;font:12px/1.5 monospace;border-top:2px solid #f00;z-index:99999;white-space:pre-wrap;';
+          (document.body || document.documentElement).appendChild(el);
+        }
+        el.textContent = msg + '\n\n' + el.textContent;
+      } catch(_) {}
+    }
+    window.addEventListener('error', e => {
+      show('JS error: ' + (e.message || e) + (e.filename ? ' @' + e.filename + ':' + e.lineno : ''));
+    });
+    window.addEventListener('unhandledrejection', e => {
+      show('Promise: ' + (e.reason && (e.reason.message || e.reason) || e));
+    });
+  })();
+</script>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <link rel="apple-touch-icon" href="./icon.svg">
