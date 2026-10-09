@@ -1,0 +1,326 @@
+// main.js (mobile) —— 移动版入口
+// 与 web 版差异：注册 SW 离线、禁用 pinch-zoom 与 overscroll、点按代替 hover、移动端 toast 文案
+import { $, el, toast } from './util.js';
+import { state, save, resetState, armAudio } from './state.js';
+import { audio } from './audio.js';
+import { scene } from './scene.js';
+import { cast, reel, pushLog } from './game.js';
+import {
+  renderHUD, renderPlaces, renderBaits,
+  showLogs, showCodex, showShop, showAchv, showQuests, showHelp,
+  togglePlacesDrawer,
+  showSaveCode, importSaveCode, showSlots, showCatchModal,
+  openModal, closeModal,
+} from './ui.js';
+
+// 注册 Service Worker（离线 / 安装到主屏）
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch((e) => console.warn('SW reg failed:', e));
+  });
+}
+
+// 阻止移动端双指 zoom / 双击 zoom / overscroll pull-to-refresh
+document.addEventListener('gesturestart', (e) => e.preventDefault());
+document.addEventListener('touchmove', (e) => {
+  if (e.touches.length > 1) e.preventDefault();  // 双指缩放交由 OrbitControls 自己处理
+}, { passive: false });
+let _lastTap = 0;
+document.addEventListener('touchend', (e) => {
+  const now = Date.now();
+  if (now - _lastTap < 300) e.preventDefault();
+  _lastTap = now;
+}, { passive: false });
+
+// 启动音节注册
+armAudio();
+
+// UI 音效：click（移动端用 touchstart 也可以，但 click 在 tap 后触发，最稳）
+document.addEventListener('click', (e) => {
+  if (e.target.closest('button, .btn, .side-btn, .cast-btn, .bait, .place, .codex-item, .shop-row')) {
+    audio.click();
+  }
+});
+
+// 力度可视化：圆弧进度（放在最前面，避免 TDZ）
+// 全圆周长 2πr ≈ 220 (r=35)
+const POWER_R = 35;
+const POWER_C = 2 * Math.PI * POWER_R;
+function updatePower(val){
+  $('power-val').textContent = val;
+  const pct = val / 100;
+  const arc = $('power-arc-fill');
+  if (arc) {
+    arc.setAttribute('stroke-dasharray', `${pct * POWER_C} ${POWER_C}`);
+  }
+}
+
+// 初始化 2D 场景（mount DOM 到 #stage）
+scene.init('stage');
+// 初始天气
+scene.setWeather('晴');
+
+function renderAll() {
+  renderHUD();
+  renderPlaces();
+  renderBaits();
+}
+
+// state._bait 由 validate.js 兜底为 'bread'；用户上次选择会从 localStorage 恢复
+renderAll();
+// 初始化力度可视化（默认 power=60）
+updatePower($('power').value);
+pushLog('欢迎来到湖畔垂钓 🎣', 'tip');
+save();
+
+// 隐藏 loading 屏（DOM 完全就绪）
+const _loadingEl = document.getElementById('loading');
+if (_loadingEl){
+  _loadingEl.classList.add('hide');
+  setTimeout(() => _loadingEl.remove(), 500);
+}
+
+// 新手引导：第一次进入游戏时展示
+function runOnboarding(){
+  const ONB_KEY = (window.__storagePrefix || 'fishing') + '_onboarded_v1';
+  if (localStorage.getItem(ONB_KEY)) return;
+
+  // 分级教程：每步独立功能解锁
+  // - 0: 未开始
+  // - 1: 已选地点（解锁抛杆）
+  // - 2: 已选鱼饵
+  // - 3: 已调力度
+  // - 4: 已抛竿
+  // - 5: 已收线
+  // - 6: 已完成教程
+  const STEPS = [
+    {
+      title: '第 1 步：选一个钓鱼地点',
+      desc:  '点击右上角⚙齿轮按钮打开菜单，选「📍 地点」展开抽屉，里面列出了可用的钓鱼点。',
+      highlight: '#btn-menu',
+      unlock: 1,  // 解锁"能切地点"
+    },
+    {
+      title: '第 2 步：选择鱼饵',
+      desc:  '底部有 8 种鱼饵（🍞🪱🌽🦐✨🪲🥟🐟）：点哪个用哪个，不同的鱼对鱼饵有偏好。',
+      highlight: '#bait-row',
+      unlock: 2,
+    },
+    {
+      title: '第 3 步：调整力度后抛竿',
+      desc:  '点右下圆形力度按钮循环（0→100），数字越大抛得越远、稀有鱼出现概率越高。点中央大圆按钮抛竿。',
+      highlight: '#cast',
+      unlock: 3,
+    },
+    {
+      title: '第 4 步：等待鱼上钩',
+      desc:  '鱼会先试探浮漂（轻微跳动），犹豫后猛咬钩（浮漂顿挫下沉）。看到顿挫就快点收线。',
+      highlight: '.stage',
+      unlock: 4,
+    },
+    {
+      title: '第 5 步：收线小游戏',
+      desc:  '点「↩ 收线」后，指针左右扫动。点击「锁定」停在绿色区间内 = 完美收线，偏离越远越容易断线。',
+      highlight: '#reel',
+      unlock: 5,
+    },
+    {
+      title: '🎓 完成新手教学！',
+      desc:  '恭喜！你已掌握：切地点→选鱼饵→调力度→抛竿→收线。商店可买鱼竿鱼饵；图鉴记录捕获；成就奖励金币。祝你丰收！',
+      highlight: null,
+      unlock: 6,
+    },
+  ];
+
+  const mask   = document.getElementById('onboard');
+  const title  = document.getElementById('onboard-title');
+  const desc   = document.getElementById('onboard-desc');
+  const step   = document.getElementById('onboard-step');
+  const prog   = document.getElementById('onboard-progress');
+  const next   = document.getElementById('onboard-next');
+  const skip   = document.getElementById('onboard-skip');
+  if (!mask) return;
+
+  prog.innerHTML = '';
+  STEPS.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'onboard-dot' + (i === 0 ? ' active' : '');
+    prog.appendChild(d);
+  });
+
+  let idx = 0;
+  let currentHl = null;
+
+  function render(){
+    const s = STEPS[idx];
+    step.textContent = `STEP ${idx + 1} / ${STEPS.length}`;
+    title.textContent = s.title;
+    desc.textContent  = s.desc;
+    next.textContent  = idx === STEPS.length - 1 ? '开始游戏' : '下一步 →';
+    Array.from(prog.children).forEach((d, i) => {
+      d.classList.toggle('active', i <= idx);
+    });
+    if (currentHl) currentHl.classList.remove('onboard-highlight');
+    currentHl = s.highlight ? document.querySelector(s.highlight) : null;
+    if (currentHl) currentHl.classList.add('onboard-highlight');
+  }
+
+  function end(){
+    if (currentHl) currentHl.classList.remove('onboard-highlight');
+    mask.classList.remove('show');
+    localStorage.setItem(ONB_KEY, '1');
+    if (state) {
+      state.tutorial = 6;
+      save();
+    }
+  }
+
+  // 分级锁：每个步骤都启用/禁用对应功能
+  // 通过覆盖 cast/reel/抛点/bait-clicks 行为
+  function applyStepLocks(){
+    const step = STEPS[idx];
+    // 第 1 步之前：禁用抛杆/收线/鱼饵
+    // 第 2 步之前：禁用抛杆/收线
+    // 第 3 步之前：禁用抛杆
+    // 第 4 步之前：禁用收线
+    // 第 5 步之前：禁用收线（已抛）
+    // 第 6 步：完全解锁
+    const c = $('cast'); const r = $('reel'); const p = $('power');
+    if (!c || !r || !p) return;
+    const u = step.unlock;
+    c.disabled = (u < 3);  // 抛杆要选完鱼饵、调完力度
+    r.disabled = (u < 4);  // 收线要抛完竿
+    if (u < 3) p.classList.add('onboard-dim');
+    else p.classList.remove('onboard-dim');
+  }
+
+  next.addEventListener('click', () => {
+    if (idx < STEPS.length - 1){ idx++; render(); applyStepLocks(); }
+    else { end(); applyStepLocks(); }
+  });
+  skip.addEventListener('click', () => { end(); applyStepLocks(); });
+  mask.addEventListener('click', (e) => {
+    if (e.target === mask) next.click();
+  });
+
+  render();
+  applyStepLocks();
+  mask.classList.add('show');
+}
+setTimeout(runOnboarding, 600);
+
+// 监听 game.js 发出的状态变化事件，统一刷新 HUD
+window.addEventListener('game:state-changed', () => {
+  renderHUD();
+  renderPlaces();
+});
+window.addEventListener('game:bait-changed', () => {
+  renderBaits();
+});
+// 捕获事件：弹出捕获模态
+window.addEventListener('game:caught', (e) => {
+  const { fish, weight, gain } = e.detail || {};
+  if (fish && typeof showCatchModal === 'function') {
+    showCatchModal(fish, weight, gain);
+  }
+});
+
+// 绑定
+$('cast').addEventListener('click', () => { vibrate(20); cast(); });
+$('reel').addEventListener('click', () => { vibrate(15); reel(); });
+// 力度 input 同步（power 隐藏 input，#power-val 数字，#power-arc-fill 弧形进度）
+$('power').addEventListener('input', e => updatePower(e.target.value));
+// 力度圆形按钮：点击循环 +5 (0→100→0)
+$('power-btn')?.addEventListener('click', () => {
+  const p = $('power');
+  p.value = (+p.value + 5) % 105;  // 0,5,10,...,100,0
+  p.dispatchEvent(new Event('input'));
+  vibrate(5);
+});
+// 顶栏齿轮按钮 → 打开 FAB 菜单
+$('btn-menu')?.addEventListener('click', () => toggleFabMenu());
+// FAB 菜单项
+document.querySelectorAll('#fab-menu .fab-item').forEach(b => b.addEventListener('click', () => {
+  const m = b.dataset.modo;
+  // 存档操作走专用按钮
+  if (b.id === 'fab-save')  { closeFabMenu(); showSaveCode(); return; }
+  if (b.id === 'fab-load')  { closeFabMenu(); showImportDialog(); return; }
+  if (b.id === 'fab-slots') { closeFabMenu(); showSlots(); return; }
+  if (b.id === 'fab-reset') { closeFabMenu(); $('btn-reset')?.click(); return; }
+  // 模态
+  if (!m) return;
+  closeFabMenu();
+  if (m === 'places') togglePlacesDrawer();
+  else if (m === 'logs')  showLogs();
+  else if (m === 'codex') showCodex();
+  else if (m === 'shop')  showShop();
+  else if (m === 'achv')  showAchv();
+  else if (m === 'quests') showQuests();
+  else if (m === 'help')  showHelp();
+}));
+// 点击 FAB 背景关闭菜单
+document.querySelector('.fab-backdrop')?.addEventListener('click', closeFabMenu);
+// 旧的 reset 按钮（保留兼容性，可能被 JS 触发）
+$('btn-reset')?.addEventListener('click', () => {
+  if (confirm('确定要重新开始吗？所有进度会丢失。')) {
+    resetState();
+    // 关闭可能打开的模态（防止显示过期的存档码等）
+    document.querySelectorAll('.modal-mask.show').forEach(m => m.remove());
+    renderAll();
+  }
+});
+
+// 导入弹窗
+function showImportDialog(){
+  openModal('导入存档码 📥', body => {
+    const intro = el('p', { style:'color:var(--text-2);font-size:13px;margin-bottom:12px;line-height:1.6;' },
+      '粘贴之前导出的存档码（以 LK1. 开头）。确认后会覆盖当前进度。');
+    const ta = el('textarea', { id:'import-code-text', placeholder:'LK1.<base64>.<crc32>', style:'width:100%;min-height:96px;background:rgba(0,0,0,.3);color:var(--primary);font-family:ui-monospace,Menlo,monospace;font-size:11px;line-height:1.5;letter-spacing:.5px;word-break:break-all;border:1px solid var(--border);border-radius:var(--r-md);padding:12px;resize:vertical;outline:0;' });
+    const errBox = el('div', { style:'color:var(--danger);font-size:12px;margin-top:8px;display:none;' });
+    const importBtn = el('button', { class:'btn primary', style:'width:100%;margin-top:12px;' }, '✅ 确认导入');
+    const cancelBtn = el('button', { class:'btn', style:'width:100%;margin-top:8px;' }, '取消');
+    importBtn.addEventListener('click', async () => {
+      errBox.style.display = 'none';
+      const code = ta.value.trim();
+      if (!code) { errBox.textContent = '请粘贴存档码'; errBox.style.display='block'; return; }
+      if (!confirm('导入会覆盖当前所有进度，确定继续？')) return;
+      const r = await importSaveCode(code);
+      if (!r.ok) { errBox.textContent = '❌ ' + r.error; errBox.style.display='block'; return; }
+      closeModal();
+    });
+    cancelBtn.addEventListener('click', closeModal);
+    body.append(intro, ta, errBox, importBtn, cancelBtn);
+  });
+}
+
+// FAB 菜单切换
+function toggleFabMenu(){
+  const menu = $('fab-menu');
+  const backdrop = document.querySelector('.fab-backdrop');
+  if (!menu) return;
+  const isOpen = menu.classList.toggle('open');
+  backdrop?.classList.toggle('show', isOpen);
+  $('btn-menu')?.setAttribute('aria-expanded', isOpen);
+  vibrate(8);
+}
+function closeFabMenu(){
+  $('fab-menu')?.classList.remove('open');
+  document.querySelector('.fab-backdrop')?.classList.remove('show');
+  $('btn-menu')?.setAttribute('aria-expanded', 'false');
+}
+
+// 触觉反馈：移动端 vibrate
+function vibrate(ms = 10){
+  if (navigator.vibrate) navigator.vibrate(ms);
+}
+
+// 旧 side-btn 兼容：保留旧 class 的元素仍可触发（如果某页面有遗留）
+document.querySelectorAll('.side-btn').forEach(b => b.addEventListener('click', () => {
+  const m = b.dataset.modo;
+  if (m === 'places') togglePlacesDrawer();
+  if (m === 'logs') showLogs();
+  if (m === 'codex') showCodex();
+  if (m === 'shop') showShop();
+  if (m === 'achv') showAchv();
+  if (m === 'help') showHelp();
+}));

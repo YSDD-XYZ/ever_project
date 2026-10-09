@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 背景圆形 -->
+    <path
+        android:fillColor="#5BE3C2"
+        android:pathData="M0,0h108v108h-108z" />
+    <!-- 水面波纹 -->
+    <path
+        android:fillColor="#3A8BFF"
+        android:pathData="M0,72 Q27,64 54,72 T108,72 L108,108 L0,108 Z" />
+    <path
+        android:fillColor="#1F66C2"
+        android:pathData="M0,82 Q27,74 54,82 T108,82 L108,108 L0,108 Z" />
+    <!-- 鱼竿（斜线） -->
+    <path
+        android:strokeColor="#FFE28A"
+        android:strokeWidth="3"
+        android:pathData="M28,18 L68,58" />
+    <!-- 鱼 -->
+    <path
+        android:fillColor="#FFCB80"
+        android:pathData="M54,90 m-12,0 a12,8 0 1,0 24,0 a12,8 0 1,0 -24,0" />
+    <!-- 鱼尾 -->
+    <path
+        android:fillColor="#FFAA44"
+        android:pathData="M66,90 L74,82 L74,98 Z" />
+    <!-- 鱼眼 -->
+    <path
+        android:fillColor="#000"
+        android:pathData="M48,88 m-1.5,0 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0" />
+</vector>

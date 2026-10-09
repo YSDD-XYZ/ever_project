@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#0b1a2b" media="(prefers-color-scheme: dark)" />
+<title>湖畔垂钓 · 触屏版</title>
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+<link rel="apple-touch-icon" href="./icon.svg">
+<!-- importmap：2D 场景无外部依赖 -->
+<style>
+  /* ==========================================================
+        设计系统（Design Tokens）
+        ========================================================== */
+  :root {
+    /* 色板 */
+    --bg:        #08111d;
+    --surface:   rgba(20, 38, 64, 0.62);
+    --surface-2: rgba(255, 255, 255, 0.04);
+    --border:    rgba(255, 255, 255, 0.10);
+    --border-strong: rgba(255, 255, 255, 0.18);
+    --text:      #eaf3ff;
+    --text-2:    #9fb1c6;
+    --text-3:    #6c8197;
+    --primary:   #5be3c2;        /* 青绿 - CTA、强调 */
+    --primary-2: #7ad7ff;        /* 天蓝 - 副强调 */
+    --accent:    #ffd166;        /* 暖黄 - 数值 */
+    --danger:    #ff7676;
+    --success:   #7be39c;
+
+    /* 间距 */
+    --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px; --s-6: 32px;
+
+    /* 圆角 */
+    --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-pill: 999px;
+
+    /* 阴影 */
+    --shadow-1: 0 4px 12px rgba(0,0,0,.35);
+    --shadow-2: 0 12px 40px rgba(0,0,0,.5);
+    --shadow-3: 0 24px 64px rgba(0,0,0,.55);
+
+    /* 字号 */
+    --fs-xs: 11px; --fs-sm: 12px; --fs-md: 13px; --fs-base: 14px;
+    --fs-lg: 16px; --fs-xl: 18px; --fs-2xl: 22px; --fs-3xl: 28px; --fs-display: 32px;
+  }
+
+  /* ---------- 基础 ---------- */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    font-family: "PingFang SC","Microsoft YaHei",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    overflow: hidden;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    background:
+      radial-gradient(ellipse at 20% 0%, #1f3f66 0%, var(--bg) 60%),
+      linear-gradient(180deg, var(--bg) 0%, #050b14 100%);
+  }
+
+  /* ---------- 3D 场景：铺满全屏 ---------- */
+  .stage {
+    position: fixed; inset: 0;
+    background: linear-gradient(180deg, #6a8caf 0%, #8fa8c2 50%, #3a5a7e 100%);
+    overflow: hidden;
+  }
+
+  /* ---------- 2D 场景元素 ---------- */
+  .sky {
+    position: absolute; inset: 0;
+    pointer-events: none;
+  }
+  .sky.weather-晴 { background: linear-gradient(180deg, #6a8caf 0%, #8fa8c2 60%, transparent 100%); }
+  .sky.weather-雨 { background: linear-gradient(180deg, #3d4f63 0%, #5a6b80 50%, transparent 100%); }
+  .sky.weather-雾 { background: linear-gradient(180deg, #6e7886 0%, #8a93a0 50%, transparent 100%); }
+  .sky.weather-雪 { background: linear-gradient(180deg, #8a96a8 0%, #b0bcc8 50%, transparent 100%); }
+  .far { position: absolute; inset: 0; pointer-events: none; }
+  .sun, .moon {
+    position: absolute; top: 8%; right: 15%;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffd166 0%, #ffaa44 70%, transparent 100%);
+    box-shadow: 0 0 40px rgba(255,209,102,.5);
+  }
+  .moon {
+    background: radial-gradient(circle, #e2e8f0 0%, #a0aec0 70%, transparent 100%);
+    box-shadow: 0 0 30px rgba(226,232,240,.4);
+  }
+  .cloud-cover {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(160,174,192,.7) 0%, transparent 60%);
+  }
+  .cloud {
+    position: absolute;
+    background: rgba(255,255,255,.85);
+    border-radius: 50%;
+    filter: blur(2px);
+  }
+  .cloud::before, .cloud::after {
+    content: ''; position: absolute;
+    background: inherit; border-radius: 50%;
+  }
+  .c1 { width: 80px; height: 24px; top: 15%; left: 10%; animation: drift 30s linear infinite; }
+  .c1::before { width: 40px; height: 40px; top: -16px; left: 12px; }
+  .c1::after  { width: 50px; height: 50px; top: -22px; right: 8px; }
+  .c2 { width: 100px; height: 28px; top: 22%; left: 50%; animation: drift 40s linear infinite; animation-delay: -10s; }
+  .c2::before { width: 50px; height: 50px; top: -22px; left: 16px; }
+  .c2::after  { width: 60px; height: 60px; top: -28px; right: 12px; }
+  .c3 { width: 70px; height: 20px; top: 8%; right: 20%; animation: drift 35s linear infinite; animation-delay: -20s; }
+  .c3::before { width: 36px; height: 36px; top: -14px; left: 10px; }
+  .c3::after  { width: 44px; height: 44px; top: -20px; right: 6px; }
+  @keyframes drift {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(120vw); }
+  }
+  .mountain {
+    position: absolute; bottom: 35%;
+    width: 0; height: 0;
+    border-left: 80px solid transparent;
+    border-right: 80px solid transparent;
+    border-bottom: 100px solid rgba(72,84,96,.5);
+  }
+  .m1 { left: 5%; }
+  .m2 { right: 8%; border-bottom-color: rgba(74,85,104,.4); border-left-width: 100px; border-right-width: 100px; border-bottom-width: 80px; }
+
+  /* 水面 */
+  .water {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 35%;
+    background: linear-gradient(180deg, #4a6890 0%, #345680 50%, #1e3258 100%);
+    overflow: hidden;
+  }
+  .water::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(255,255,255,.1) 0%, transparent 50%, rgba(255,255,255,.1) 100%);
+    animation: water-shimmer 4s ease-in-out infinite;
+  }
+  @keyframes water-shimmer {
+    0%, 100% { opacity: .3; }
+    50%      { opacity: .7; }
+  }
+  .wave-bg, .wave-fg {
+    position: absolute; left: 0; right: 0; width: 200%;
+    height: 30px;
+  }
+  .wave-bg { top: 0; animation: wave-drift 8s linear infinite; opacity: .4; }
+  .wave-fg { top: 8px; animation: wave-drift 4s linear infinite; }
+  @keyframes wave-drift {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .ripples {
+    position: absolute; inset: 0;
+    pointer-events: none;
+  }
+  .ripple {
+    position: absolute; bottom: 30%;
+    width: 8px; height: 8px;
+    border: 2px solid rgba(255,255,255,.6);
+    border-radius: 50%;
+    transform: translateX(-50%) translateY(50%);
+    animation: ripple-expand 1.8s ease-out forwards;
+  }
+  @keyframes ripple-expand {
+    0%   { transform: translateX(-50%) translateY(50%) scale(.3); opacity: 1; }
+    100% { transform: translateX(-50%) translateY(50%) scale(6); opacity: 0; }
+  }
+
+  /* 浮漂 */
+  .bobber {
+    position: absolute;
+    left: var(--bx, 50%);
+    bottom: 32%;
+    transform: translateX(-50%);
+    z-index: 3;
+    pointer-events: none;
+  }
+  .bobber-stick {
+    position: absolute;
+    left: 50%; top: -40px;
+    width: 2px; height: 40px;
+    background: linear-gradient(180deg, transparent 0%, #5be3c2 100%);
+    transform: translateX(-50%);
+  }
+  .bobber-flag {
+    position: absolute;
+    left: 50%; top: -52px;
+    font-size: 16px;
+    transform: translateX(-50%);
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,.3));
+  }
+  .bobber-float {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #ff7676 0%, #cc3333 100%);
+    box-shadow:
+      inset 0 -3px 6px rgba(0,0,0,.3),
+      0 0 8px rgba(255,118,118,.4);
+    border: 1.5px solid #fff;
+    animation: bobber-idle 2.4s ease-in-out infinite;
+  }
+  @keyframes bobber-idle {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-3px); }
+  }
+  .bobber.casting .bobber-float { animation: none; }
+  .bobber.nibbling .bobber-float {
+    animation: bobber-nibble 0.4s ease-in-out 3;
+  }
+  @keyframes bobber-nibble {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px) rotate(-8deg); }
+  }
+  .bobber.biting .bobber-float {
+    animation: bobber-bite 0.3s ease-in 2;
+  }
+  @keyframes bobber-bite {
+    0%   { transform: translateY(-4px); }
+    40%  { transform: translateY(14px); }
+    100% { transform: translateY(0); }
+  }
+  .bobber.hooked .bobber-float {
+    background: radial-gradient(circle at 30% 30%, #ffd166 0%, #cc8800 100%);
+    box-shadow: 0 0 16px rgba(255,209,102,.6);
+  }
+
+  /* 鱼在水下 */
+  .fish-layer {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 30%;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .fish-shadow {
+    position: absolute;
+    left: var(--bx, 50%);
+    bottom: 10%;
+    transform: translateX(-50%) scaleX(-1);
+    font-size: 36px;
+    filter:
+      drop-shadow(0 0 6px rgba(0,0,0,.4))
+      hue-rotate(180deg) saturate(.5) brightness(.8);
+    animation: fish-swim 2.5s ease-in-out infinite;
+    opacity: .85;
+  }
+  @keyframes fish-swim {
+    0%, 100% { transform: translateX(-50%) scaleX(-1) translateY(0); }
+    50%      { transform: translateX(-50%) scaleX(-1) translateY(-8px); }
+  }
+
+  /* 鱼跳出水面 */
+  .fish-jump {
+    position: absolute;
+    left: 50%; top: -30px;
+    font-size: 36px;
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  /* 水花 */
+  .splash-layer, .particles {
+    position: absolute; inset: 0;
+    pointer-events: none;
+  }
+  .splash {
+    position: absolute;
+    bottom: 32%;
+    transform: translateX(-50%) translateY(50%);
+    font-size: 24px;
+    z-index: 4;
+    animation: splash-anim 0.8s ease-out forwards;
+  }
+  @keyframes splash-anim {
+    0%   { transform: translateX(-50%) translateY(50%) scale(.5); opacity: 1; }
+    100% { transform: translateX(-50%) translateY(-40px) scale(1.5); opacity: 0; }
+  }
+
+  /* 雨/雪/雾粒子 */
+  .raindrop {
+    position: absolute; top: -20px;
+    width: 2px; height: 14px;
+    background: linear-gradient(180deg, transparent, rgba(174,194,224,.6));
+    border-radius: 1px;
+    animation: rain-fall linear infinite;
+  }
+  @keyframes rain-fall {
+    from { transform: translateY(0); }
+    to   { transform: translateY(110vh); }
+  }
+  .snowflake {
+    position: absolute; top: -10px;
+    font-size: 12px;
+    color: #fff;
+    animation: snow-fall linear infinite;
+  }
+  @keyframes snow-fall {
+    from { transform: translateY(0) translateX(0); }
+    to   { transform: translateY(110vh) translateX(20px); }
+  }
+  .fog {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(203,213,224,.6) 0%, transparent 60%);
+    backdrop-filter: blur(1px);
+  }
+
+  /* ---------- 顶左 HUD：钱币 + 等级（浮在 3D 上） ---------- */
+  .hud {
+    position: fixed; top: max(12px, env(safe-area-inset-top, 12px));
+    left: 12px;
+    z-index: 5;
+    display: flex; flex-direction: row; align-items: center; gap: 8px;
+    pointer-events: none;
+  }
+  .hud > * { pointer-events: auto; }
+  .coin {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px 5px 9px;
+    background: linear-gradient(135deg, rgba(255,209,102,.28), rgba(255,140,80,.22));
+    border: 1px solid rgba(255,209,102,.5);
+    border-radius: var(--r-pill);
+    box-shadow: 0 2px 10px rgba(255,180,80,.25);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  .coin .ic { font-size: 16px; }
+  .coin b {
+    color: #ffe28a; font-weight: 800; font-size: 16px;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 2px rgba(0,0,0,.5);
+    min-width: 1.5em; text-align: right;
+  }
+  .lv {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 10px;
+    background: rgba(15, 28, 50, .75);
+    border: 1px solid rgba(91,227,194,.5);
+    border-radius: var(--r-pill);
+    color: #fff;
+    font-size: 12px; font-weight: 800;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  .lv .lvlbl { color: var(--primary); font-weight: 700; }
+  .xp-wrap { display: none; }  /* 顶栏不显示 xp，留给更专门的 view */
+  .xp-track {
+    display: inline-block; width: 40px; height: 4px;
+    background: rgba(255,255,255,.12);
+    border-radius: var(--r-pill); overflow: hidden;
+    position: relative; vertical-align: middle;
+  }
+  .xp-track > i {
+    display: block; height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--primary-2), var(--primary));
+    transition: width .4s;
+  }
+
+  /* ---------- 顶右：齿轮按钮 ---------- */
+  .gear {
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top, 12px));
+    right: 12px;
+    z-index: 6;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: rgba(15, 28, 50, .65);
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    font-size: 18px; line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s, transform .15s;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  .gear:active { background: rgba(91,227,194,.25); transform: rotate(60deg); }
+
+  /* ---------- 底中：环境条幅（往上挪，让位给底部按钮） ---------- */
+  .env-bar {
+    position: fixed; left: 50%;
+    bottom: calc(max(14px, env(safe-area-inset-bottom, 14px)) + 130px);
+    transform: translateX(-50%);
+    display: flex; gap: 6px;
+    padding: 5px 12px;
+    background: rgba(0,0,0,.55);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: var(--r-pill);
+    color: var(--text-2);
+    font-size: 11px;
+    z-index: 4;
+    pointer-events: auto;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    white-space: nowrap;
+    box-shadow: 0 2px 12px rgba(0,0,0,.4);
+  }
+  .env-bar b { color: var(--text); font-weight: 700; }
+  .env-bar span { display: inline-flex; align-items: center; gap: 3px; }
+
+  /* ---------- 底部左：鱼饵（横滑条，5 圆） ---------- */
+  .bait-row {
+    position: fixed; left: 8px;
+    bottom: max(14px, env(safe-area-inset-bottom, 14px));
+    display: flex; gap: 6px;
+    z-index: 5;
+    width: calc(50% - 16px);
+    max-width: 240px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 6px 4px 4px;
+  }
+  .bait-row::-webkit-scrollbar { display: none; }
+  .bait {
+    flex: 0 0 auto;
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    background: rgba(15, 28, 50, .55);
+    transition: all .15s;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    scroll-snap-align: center;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
+  .bait .emoji { font-size: 22px; line-height: 1; pointer-events: none; }
+  .bait .cnt {
+    position: absolute; top: -3px; right: -3px;
+    min-width: 16px; height: 16px; padding: 0 3px;
+    background: var(--accent);
+    color: #2c1206;
+    font-size: 9px; font-weight: 800;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1.5px solid #0b1a2b;
+    line-height: 1;
+  }
+  .bait:active { background: rgba(255,255,255,.15); }
+  .bait.active {
+    border-color: var(--primary);
+    background: linear-gradient(135deg, rgba(91,227,194,.25), rgba(122,215,255,.18));
+    box-shadow: 0 0 0 3px rgba(91,227,194,.2), 0 4px 12px rgba(91,227,194,.3);
+    transform: scale(1.1);
+  }
+  .bait.disabled { opacity: .35; cursor: not-allowed; }
+  .bait .nm { display: none; }
+
+  /* ---------- 底右：抛杆 FAB（巨大圆形 + cooldown 圆环） ---------- */
+  .cast-fab {
+    position: fixed;
+    right: calc(env(safe-area-inset-right, 0px) + 14px);
+    bottom: calc(max(14px, env(safe-area-inset-bottom, 14px)) + 14px);
+    z-index: 5;
+    width: 68px; height: 68px;
+    border-radius: 50%;
+    border: none; cursor: pointer;
+    background: radial-gradient(circle at 50% 35%, #ffcb80 0%, #ff7a59 70%, #d04a30 100%);
+    box-shadow:
+      0 0 0 4px rgba(255,140,80,.15),
+      0 8px 24px rgba(255,90,40,.5),
+      inset 0 -4px 8px rgba(0,0,0,.25),
+      inset 0 4px 8px rgba(255,255,255,.2);
+    transition: transform .1s, box-shadow .15s;
+    display: flex; align-items: center; justify-content: center;
+    color: #2c1206;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cast-fab:active { transform: scale(.92); }
+  .cast-fab:disabled { filter: grayscale(.7); opacity: .6; cursor: not-allowed; }
+  .cast-svg {
+    position: absolute; inset: -5px; width: calc(100% + 10px); height: calc(100% + 10px);
+    pointer-events: none;
+  }
+  .cast-svg .ring-bg { fill: none; stroke: rgba(255,255,255,.18); stroke-width: 3; }
+  .cast-svg .ring-fill {
+    fill: none; stroke: #5be3c2; stroke-width: 4;
+    stroke-dasharray: 289; stroke-dashoffset: 289;
+    stroke-linecap: round;
+    transform: rotate(-90deg); transform-origin: center;
+    transition: stroke-dashoffset .1s linear;
+  }
+  .cast-icon {
+    font-size: 32px; line-height: 1;
+    pointer-events: none;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.3));
+  }
+
+  /* 抛杆 FAB 左边的辅助按钮（紧贴抛杆左右两侧） */
+  .reel-btn {
+    position: fixed;
+    right: calc(env(safe-area-inset-right, 0px) + 16px + 90px + 8px);
+    bottom: calc(max(14px, env(safe-area-inset-bottom, 14px)) + 22px);
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    background: rgba(91,227,194,.9);
+    border: 1px solid var(--primary);
+    color: #0a1e36;
+    font-size: 20px; line-height: 1; font-weight: 800;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 14px rgba(91,227,194,.4);
+    transition: transform .1s, opacity .2s;
+    z-index: 5;
+  }
+  .reel-btn:not(:disabled):active { transform: scale(.92); }
+  .reel-btn:disabled { opacity: 0; pointer-events: none; transform: scale(.8); }
+
+  .power-btn {
+    position: fixed;
+    right: calc(env(safe-area-inset-right, 0px) + 16px);
+    bottom: calc(max(14px, env(safe-area-inset-bottom, 14px)) + 78px);
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: rgba(15, 28, 50, .8);
+    border: 1px solid rgba(91,227,194,.5);
+    color: var(--accent);
+    font-weight: 800; font-size: 13px;
+    cursor: pointer;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s, transform .1s;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    z-index: 5;
+  }
+  .power-btn:active { background: rgba(91,227,194,.2); transform: scale(.92); }
+  .power-btn svg {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    transform: rotate(-90deg);
+  }
+  .power-btn .arc-bg { fill: none; stroke: rgba(255,255,255,.15); stroke-width: 3; }
+  .power-btn .arc-fill {
+    fill: none; stroke: url(#power-grad); stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .power-btn b {
+    position: relative; z-index: 1;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+  }
+
+  /* ---------- 模态框 ---------- */
+  .modal-mask {
+    position: fixed; inset: 0;
+    background: rgba(5, 10, 18, 0.7);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 50;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    animation: fadeIn .2s ease-out;
+  }
+  .modal-mask.show { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes popIn {
+    from { opacity: 0; transform: translateY(20px) scale(.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .modal {
+    width: min(720px, 92vw); max-height: 86vh; overflow: auto;
+    background: linear-gradient(180deg, #11233e, #0a1729);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-3);
+    animation: popIn .25s cubic-bezier(.2, .9, .3, 1.2);
+  }
+  .modal header {
+    padding: 16px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border);
+    font-weight: 700; font-size: var(--fs-lg);
+  }
+  .modal .close {
+    cursor: pointer;
+    width: 28px; height: 28px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    color: var(--text-2);
+    transition: background .15s;
+  }
+  .modal .close:hover { background: rgba(255,255,255,.1); color: var(--text); }
+  .modal .body { padding: 16px 20px 20px; }
+
+  /* ---------- 地点抽屉（左滑入） ---------- */
+  .place-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5);
+    backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+    z-index: 49; opacity: 0; pointer-events: none;
+    transition: opacity .25s;
+  }
+  .place-backdrop.show { opacity: 1; pointer-events: auto; }
+  .left-panel {
+    position: fixed; left: 0; top: 0; bottom: 0;
+    width: 84vw; max-width: 360px;
+    background: linear-gradient(180deg, #11233e, #0a1729);
+    border-right: 1px solid var(--border-strong);
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform .25s cubic-bezier(.2, .8, .3, 1);
+    overflow-y: auto;
+    box-shadow: 4px 0 24px rgba(0,0,0,.4);
+  }
+  .left-panel.open { transform: translateX(0); }
+  .left-panel header {
+    padding: 16px 20px; font-weight: 700; letter-spacing: 1px;
+    font-size: var(--fs-md);
+    color: var(--text);
+    background: linear-gradient(90deg, rgba(255,255,255,.05), transparent);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 2;
+  }
+  .panel .body { padding: 14px 16px; }
+  .place-list { display: grid; gap: 10px; }
+  .place {
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 12px;
+    cursor: pointer;
+    background: rgba(255,255,255,.03);
+    transition: all .15s;
+    position: relative;
+  }
+  .place:hover { background: rgba(255,255,255,.07); border-color: var(--border-strong); }
+  .place.active { border-color: var(--primary); background: rgba(91,227,194,.10); }
+  .place.locked { opacity: .55; cursor: not-allowed; border-style: dashed; }
+  .place.locked::before {
+    content: '🔒'; position: absolute; top: 8px; right: 8px; font-size: 14px;
+  }
+  .place h4 { margin-bottom: 4px; font-size: var(--fs-md); color: var(--text); }
+  .place p { font-size: var(--fs-sm); color: var(--text-2); line-height: 1.5; margin-bottom: 6px; }
+  .place .meta { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag {
+    display: inline-block; padding: 2px 8px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    font-size: var(--fs-xs); color: var(--text-2);
+  }
+  .place-req { font-size: 10px; color: var(--text-3); margin-top: 4px; }
+
+  /* ---------- 鱼图鉴 ---------- */
+  .codex-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+  }
+  .codex-tier { font-size: 14px; font-weight: 800; flex: 1; }
+  .codex-tier-bar {
+    height: 5px; background: rgba(255,255,255,.1);
+    border-radius: var(--r-pill); overflow: hidden;
+    margin-top: 4px;
+  }
+  .codex-tier-fill { height: 100%; transition: width .3s; }
+  .codex-count { font-size: 12px; color: var(--text-2); text-align: right; font-variant-numeric: tabular-nums; }
+  .codex { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+  .codex-item {
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 10px 6px;
+    text-align: center;
+  }
+  .codex-item.unknown { opacity: .35; filter: grayscale(.5); }
+  .codex-item .emoji { font-size: 26px; }
+  .codex-item .nm { font-size: 11px; font-weight: 700; margin-top: 4px; color: var(--text); }
+  .codex-item .rarity {
+    font-size: 9px; padding: 1px 5px; border-radius: 99px;
+    display: inline-block; margin-top: 2px;
+    background: rgba(255,255,255,.08); color: var(--text-2);
+  }
+  .codex-item .stat { font-size: 9px; color: var(--text-3); margin-top: 3px; }
+
+  /* ---------- FAB 菜单 ---------- */
+  .fab-menu {
+    position: fixed; top: 56px; right: 12px;
+    display: flex; flex-direction: column; gap: 6px;
+    z-index: 8;
+    opacity: 0; transform: translateY(-8px);
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+    max-width: 180px;
+  }
+  .fab-menu.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .fab-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px;
+    background: rgba(15, 28, 50, .95);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-pill);
+    color: var(--text);
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 14px rgba(0,0,0,.4);
+    transition: background .15s, transform .15s;
+  }
+  .fab-item:active { background: rgba(91,227,194,.2); transform: scale(.97); }
+  .fab-item .ico { font-size: 16px; }
+  .fab-item.fab-danger { color: var(--danger); }
+  .fab-divider { height: 1px; background: var(--border); margin: 4px 6px; }
+  .fab-backdrop {
+    position: fixed; inset: 0; z-index: 7;
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s;
+  }
+  .fab-backdrop.show { opacity: 1; pointer-events: auto; }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    padding: 8px 18px;
+    background: rgba(0,0,0,.75);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: var(--r-pill);
+    color: #fff;
+    font-size: 13px; font-weight: 500;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .2s, transform .2s;
+    backdrop-filter: blur(6px);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+  /* ---------- 飘字（捕获 +xx 金币）---------- */
+  .float-text {
+    position: absolute; font-weight: 800; font-size: var(--fs-xl);
+    text-shadow: 0 2px 8px rgba(0,0,0,.7);
+    animation: floatUp 1.6s ease-out forwards;
+    pointer-events: none;
+  }
+  @keyframes floatUp {
+    from { opacity: 1; transform: translate(-50%, 0); }
+    to   { opacity: 0; transform: translate(-50%,-60px); }
+  }
+
+  /* ---------- Loading ---------- */
+  .loading {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+    transition: opacity .4s ease-out;
+  }
+  .loading.hide { opacity: 0; pointer-events: none; }
+  .loading-inner { text-align: center; }
+  .loading-fish {
+    font-size: 56px;
+    animation: bobUp 1.6s ease-in-out infinite;
+    filter: drop-shadow(0 4px 12px rgba(91,227,194,.4));
+  }
+  @keyframes bobUp {
+    0%,100% { transform: translateY(0); }
+    50%     { transform: translateY(-12px); }
+  }
+  .loading-text {
+    margin-top: 14px;
+    color: var(--text-2);
+    font-size: var(--fs-md);
+    letter-spacing: 2px;
+  }
+
+  /* ---------- 任务模态 ---------- */
+  .quest-list { display: grid; gap: 10px; }
+  .quest {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    transition: all .15s;
+  }
+  .quest.done {
+    background: rgba(123,227,156,.1);
+    border-color: rgba(123,227,156,.3);
+  }
+  .quest .ico { font-size: 22px; }
+  .quest .nm { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .quest .ds { font-size: 11px; color: var(--text-2); line-height: 1.4; margin-bottom: 6px; }
+  .quest-bar {
+    height: 5px; background: rgba(255,255,255,.1);
+    border-radius: var(--r-pill); overflow: hidden;
+    margin-bottom: 4px;
+  }
+  .quest-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-2), var(--primary));
+    transition: width .3s;
+  }
+  .quest-progress { font-size: 10px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+  .quest .reward { color: var(--accent); font-weight: 700; font-size: 12px; white-space: nowrap; }
+
+  /* ---------- 新手引导 ---------- */
+  .onboard-mask {
+    position: fixed; inset: 0; z-index: 90;
+    background: rgba(0,0,0,.6);
+    display: flex; align-items: flex-end; justify-content: center;
+    padding: 0 20px 80px;
+  }
+  .onboard-card {
+    background: linear-gradient(180deg, #142841, #0a1729);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-lg);
+    padding: 20px;
+    max-width: 360px;
+    width: 100%;
+    box-shadow: 0 24px 64px rgba(0,0,0,.55);
+  }
+  .onboard-card h3 {
+    font-size: var(--fs-lg);
+    margin-bottom: 8px;
+    background: linear-gradient(90deg, var(--primary-2), var(--primary));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .onboard-card p {
+    color: var(--text-2); font-size: var(--fs-sm);
+    line-height: 1.6; margin-bottom: 16px;
+  }
+  .onboard-progress { display: flex; gap: 4px; margin-bottom: 12px; }
+  .onboard-progress i {
+    flex: 1; height: 3px;
+    background: rgba(255,255,255,.1);
+    border-radius: var(--r-pill);
+  }
+  .onboard-progress i.done { background: var(--primary); }
+  .onboard-actions { display: flex; gap: 8px; }
+  .onboard-actions .btn { flex: 1; }
+
+  .onboard-highlight {
+    position: relative; z-index: 91;
+    box-shadow: 0 0 0 9999px rgba(5, 10, 18, .55), 0 0 0 4px var(--primary) !important;
+    border-radius: var(--r-md);
+  }
+  .onboard-dim { opacity: .35; filter: grayscale(.7); pointer-events: none; }
+
+  /* ---------- 通用按钮 ---------- */
+  .btn {
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    padding: 8px 14px; border-radius: var(--r-sm);
+    font-size: var(--fs-md);
+    transition: all .15s;
+  }
+  .btn:hover { background: rgba(255,255,255,.12); transform: translateY(-1px); }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-2));
+    color: #06161e; border: none; font-weight: 700;
+  }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .btn:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+
+  /* ---------- 响应式 ---------- */
+  @media (min-width: 720px) {
+    .coin b { font-size: 18px; }
+    .lv { font-size: 12px; }
+    .cast-fab { width: 88px; height: 88px; }
+    .cast-icon { font-size: 36px; }
+    .bait { width: 50px; height: 50px; }
+    .bait .emoji { font-size: 24px; }
+    .left-panel { width: 360px; }
+  }
+  @media (max-width: 360px) {
+    .bait { width: 40px; height: 40px; }
+    .bait .emoji { font-size: 20px; }
+    .cast-fab { width: 68px; height: 68px; }
+    .side-btns { right: 92px; }
+  }
+
+  /* ---------- <noscript> Fallback ---------- */
+  .noscript-fallback {
+    max-width: 480px; margin: 18vh auto;
+    padding: 32px 28px;
+    background: linear-gradient(180deg, #142841, #0a1729);
+    border: 1px solid rgba(91,227,194,.3);
+    border-radius: 16px;
+    text-align: center;
+    color: var(--text);
+  }
+  .noscript-fallback h1 {
+    font-size: 24px; margin-bottom: 16px;
+    background: linear-gradient(90deg, var(--primary-2), var(--primary));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .noscript-fallback p {
+    color: var(--text-2);
+    font-size: 14px; line-height: 1.7;
+    margin-bottom: 8px;
+  }
+  </style>
+
+  <!-- 渐变定义（被 SVG 引用） -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="power-grad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#7ad7ff"/>
+        <stop offset="100%" stop-color="#ffd166"/>
+      </linearGradient>
+    </defs>
+  </svg>
+</head>
+<body>
+
+  <!-- 2D 场景容器（由 scene.js mount DOM） -->
+  <div class="stage" id="stage"></div>
+
+  <!-- 顶左：钱币 + 等级（更大、更清晰） -->
+  <div class="hud">
+    <div class="coin">
+      <span class="ic">💰</span>
+      <b id="hud-money">0</b>
+    </div>
+    <div class="lv">
+      <span class="lvlbl">Lv.</span>
+      <b id="hud-level">1</b>
+    </div>
+    <div class="xp-wrap">
+      <i class="xp-track"><i id="hud-xp"></i></i>
+    </div>
+  </div>
+
+  <!-- 顶右：齿轮按钮 -->
+  <button class="gear" id="btn-menu" aria-label="设置">⚙</button>
+
+  <!-- 底左：鱼饵（5 个圆形，emoji + 计数） -->
+  <div class="bait-row" id="bait-row"></div>
+
+  <!-- 底右：抛杆主按钮（巨大） -->
+  <button class="cast-fab" id="cast" aria-label="抛竿">
+    <svg class="cast-svg" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="46" class="ring-bg"/>
+      <circle id="cast-ring-fill" cx="50" cy="50" r="46" class="ring-fill"
+              transform="rotate(-90 50 50)"/>
+    </svg>
+    <span class="cast-icon">🎣</span>
+  </button>
+
+  <!-- 抛杆旁：收线（cooldown 时出现）+ 力度（直接嵌在抛杆上） -->
+  <button class="reel-btn" id="reel" disabled>↩</button>
+  <button class="power-btn" id="power-btn" aria-label="力度">
+    <svg viewBox="0 0 100 100">
+      <path id="power-arc" d="" class="arc-bg"/>
+      <path id="power-arc-fill" d="" class="arc-fill"/>
+    </svg>
+    <b id="power-val">60</b>
+  </button>
+
+  <!-- 底中：环境条幅（地点 / 天气 / 时段 一行） -->
+  <div class="env-bar" id="env-bar">
+    <span id="env-place">📍 <b id="hud-place">村边小塘</b></span>
+    <span id="env-weather">☀ 晴</span>
+    <span id="env-time">⏱ 清晨</span>
+  </div>
+
+  <!-- 隐藏的 range（保持兼容） -->
+  <input type="range" id="power" min="0" max="100" value="60" style="display:none"/>
+
+  <!-- FAB 菜单（齿轮按钮触发） -->
+  <div class="fab-menu" id="fab-menu">
+    <button class="fab-item" data-modo="places"><span class="ico">📍</span><span>地点</span></button>
+    <button class="fab-item" data-modo="logs"><span class="ico">📜</span><span>日志</span></button>
+    <button class="fab-item" data-modo="codex"><span class="ico">📖</span><span>图鉴</span></button>
+    <button class="fab-item" data-modo="shop"><span class="ico">🛒</span><span>商店</span></button>
+    <button class="fab-item" data-modo="achv"><span class="ico">🏅</span><span>成就</span></button>
+    <button class="fab-item" data-modo="quests"><span class="ico">📋</span><span>任务</span></button>
+    <button class="fab-item" data-modo="help"><span class="ico">❓</span><span>玩法</span></button>
+    <div class="fab-divider"></div>
+    <button class="fab-item" id="fab-save"><span class="ico">📤</span><span>导出</span></button>
+    <button class="fab-item" id="fab-load"><span class="ico">📥</span><span>导入</span></button>
+    <button class="fab-item" id="fab-slots"><span class="ico">📚</span><span>存档</span></button>
+    <button class="fab-item fab-danger" id="fab-reset"><span class="ico">♻</span><span>重开</span></button>
+  </div>
+  <div class="fab-backdrop" id="fab-backdrop"></div>
+
+  <!-- 折叠式统计抽屉（紧贴右上齿轮下方） -->
+  <details class="stats-drawer" id="stats-drawer">
+    <summary>
+      <span class="ico">📊</span>
+      <span>本局</span>
+      <span class="chev">▾</span>
+    </summary>
+    <div class="stats-mini">
+      <span>捕获</span><b id="stat-catch">0</b>
+      <span>最重</span><b id="stat-heaviest">—</b>
+      <span>总收入</span><b id="stat-earn">0</b>
+      <span>出竿</span><b id="stat-cast">0</b>
+      <span>逃跑</span><b id="stat-escape">0</b>
+      <span>命中率</span><b id="stat-hit">—</b>
+    </div>
+  </details>
+
+  <!-- 左侧抽屉背景 -->
+  <div class="place-backdrop" id="place-backdrop"></div>
+
+  <!-- 左侧：地点 -->
+  <div class="panel left-panel">
+    <header>钓鱼地点</header>
+    <div class="body">
+      <div class="place-list" id="place-list"></div>
+    </div>
+  </div>
+
+  <!-- 模态框 -->
+  <div class="modal-mask" id="modal-mask">
+    <div class="modal">
+      <header>
+        <div id="modal-title">题库</div>
+        <div class="close" id="modal-close">✕</div>
+      </header>
+      <div class="body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Loading 屏 -->
+  <div class="loading" id="loading">
+    <div class="loading-inner">
+      <div class="loading-fish">🐟</div>
+      <div class="loading-text">湖畔垂钓 · 加载中</div>
+      <div class="loading-bar"></div>
+    </div>
+  </div>
+
+  <!-- 新手引导 -->
+  <div class="onboard-mask" id="onboard">
+    <div class="onboard-card">
+      <div class="onboard-step" id="onboard-step">STEP 1 / 6</div>
+      <div class="onboard-title" id="onboard-title">选一个钓鱼地点</div>
+      <div class="onboard-desc" id="onboard-desc">左侧面板列出可用的钓鱼点。</div>
+      <div class="onboard-progress" id="onboard-progress"></div>
+      <div class="onboard-actions">
+        <span class="onboard-skip" id="onboard-skip">跳过引导</span>
+        <button class="onboard-btn primary" id="onboard-next">下一步 →</button>
+      </div>
+    </div>
+  </div>
+
+
+<script type="module" src="./src/main.js"></script>
+<script>window.__storagePrefix = 'fishing_mobile';</script>
+
+  <noscript>
+    <div class="noscript-fallback">
+      <h1>🎣 湖畔垂钓</h1>
+      <p>本游戏需要 JavaScript 与 WebGL 才能运行。</p>
+      <p>请在浏览器中启用 JavaScript，或使用支持 WebGL 的现代浏览器（Chrome / Edge / Firefox / Safari）。</p>
+    </div>
+  </noscript>
+</body>
+</html>
