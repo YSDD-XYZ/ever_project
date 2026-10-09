@@ -70,6 +70,15 @@
             </intent-filter>
         </receiver>
 
+        <!-- 鱼游戏事件接收（来自 com.example.fish） -->
+        <receiver
+            android:name=".receiver.FishEventReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.example.fish.EVENT" />
+            </intent-filter>
+        </receiver>
+
         <!-- 用于分享导出的 db 文件 -->
         <provider
             android:name="androidx.core.content.FileProvider"

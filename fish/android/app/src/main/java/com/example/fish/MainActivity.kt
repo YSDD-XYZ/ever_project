@@ -234,4 +234,53 @@ class JsBridge(private val appCtx: Context) {
 
     @android.webkit.JavascriptInterface
     fun isAndroid(): Boolean = true
+
+    /**
+     * JS 端调用：把游戏事件通过 EventReporter 发给 diary-app
+     * - type: 事件类型
+     * - title: 短标题
+     * - body: 详细描述
+     * - tagsJson: JSON 数组字符串 ["fish","传说"]
+     */
+    @android.webkit.JavascriptInterface
+    fun reportEvent(type: String, title: String, body: String, tagsJson: String) {
+        try {
+            // tagsJson 是 JSON 数组,简单解析（不依赖外部库）
+            val tags = tagsJson
+                .removePrefix("[")
+                .removeSuffix("]")
+                .split(",")
+                .map { it.trim().removeSurrounding("\"") }
+                .filter { it.isNotEmpty() }
+
+            when (type) {
+                "fish.caught" -> {
+                    // 解析 body 里的 kg 和 rarity
+                    val kg = Regex("⚖️\\s*重量：([\\d.]+)").find(body)?.groupValues?.getOrNull(1)?.toDoubleOrNull() ?: 0.0
+                    val rarity = Regex("⭐\\s*稀有度：(\\S+)").find(body)?.groupValues?.getOrNull(1) ?: "常见"
+                    val place = Regex("📍\\s*地点：(.*)").find(body)?.groupValues?.getOrNull(1)?.trim()
+                    val fishName = title.removePrefix("抓到 ").trim()
+                    EventReporter.reportFishCaught(ctx, fishName, kg, rarity, place)
+                }
+                "fish.levelup" -> {
+                    val level = Regex("Lv\\.(\\d+)").find(title)?.groupValues?.getOrNull(1)?.toIntOrNull() ?: 0
+                    EventReporter.reportLevelUp(ctx, level)
+                }
+                "fish.achievement" -> {
+                    val achvId = tags.firstOrNull { it != "fish" && it != "achievement" } ?: ""
+                    val achvName = title.removePrefix("成就解锁：").trim()
+                    EventReporter.reportAchievement(ctx, achvId, achvName)
+                }
+                else -> {
+                    // 通用事件：直接发
+                    // 通过反射调用（避免在 JsBridge 里再写一遍 send 逻辑）
+                    val reporterClass = Class.forName("com.example.fish.EventReporter")
+                    val method = reporterClass.getMethod("sendGeneric", android.content.Context::class.java, String::class.java, String::class.java, String::class.java, Array<String>::class.java)
+                    method.invoke(null, ctx, type, title, body, tags.toTypedArray())
+                }
+            }
+        } catch (e: Throwable) {
+            android.util.Log.d("FishJS", "reportEvent 失败（无影响）: ${e.message}")
+        }
+    }
 }

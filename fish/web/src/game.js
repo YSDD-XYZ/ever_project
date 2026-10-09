@@ -299,6 +299,21 @@ function captureFish(weight, factor=1){
   pushLog(`捕获 ${f.emj} ${f.name}（${weight.toFixed(2)}kg），获得 ${gain} 金币`);
   spawnFloatText('+'+gain+'💰','#ffe28a');
   checkAchievements();
+  // ====== Android EventReporter 上报（仅 Android 端有效）======
+  if (window.AndroidBridge?.reportEvent) {
+    try {
+      const place = (window.PLACES || []).find(p => p.id === state.placeId);
+      const body = `🐟 鱼获：${f.name}\n⚖️ 重量：${weight.toFixed(2)} kg\n⭐ 稀有度：${f.rarity}` + (place ? `\n📍 地点：${place.name}` : '');
+      const tags = ['fish', f.rarity].filter(Boolean);
+      window.AndroidBridge.reportEvent('fish.caught', '抓到 ' + f.name, body, JSON.stringify(tags));
+    } catch (_) {}
+  }
+  // ====== 升级事件 ======
+  if (up > 0 && window.AndroidBridge?.reportEvent) {
+    try {
+      window.AndroidBridge.reportEvent('fish.levelup', '升级到 Lv.' + state.level, `🎉 钓鱼等级提升！当前 Lv.${state.level}`, '["fish","levelup"]');
+    } catch (_) {}
+  }
   save();
   window.dispatchEvent(new CustomEvent('game:state-changed'));
   // 启动 3D 捕获序列；动画结束后再弹模态框、解除按钮锁定
