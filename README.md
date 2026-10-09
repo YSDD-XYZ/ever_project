@@ -4,9 +4,9 @@
 
 ## 在线入口
 
-🎯 **项目集**: [https://ysdd-xyz.github.io/ever_project/web/portal.html](https://ysdd-xyz.github.io/ever_project/web/portal.html)
-- 卡片式浏览所有项目,点击进入
-- 鱼游戏页顶部有"返回项目集"导航
+🎯 **工程导航**: [https://ysdd-xyz.github.io/ever_project/web/portal.html](https://ysdd-xyz.github.io/ever_project/web/portal.html)
+- 菜单式浏览所有子项目,点击跳转
+- 鱼游戏页顶部有"导航"按钮可一键返回
 
 ## 子项目
 
@@ -24,7 +24,6 @@
 ## 部署
 
 - `fish/web/` → GitHub Pages (https://ysdd-xyz.github.io/ever_project/)
-  - `portal.html` = 项目集入口
-  - `index.html` = 钓鱼游戏(带顶部项目导航)
-- `fish/android/` → APK (`fish/dist/`)
-- `diary-app/` → Android APK (见子目录)
+  - `portal.html` = 工程导航（菜单栏）
+  - `index.html` = 钓鱼游戏（带顶部导航胶囊）
+- `fish/android/`、`diary-app/` → 源码仓库,无 binary 产物

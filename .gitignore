@@ -38,6 +38,7 @@ tmp/
 *.apk
 *.aab
 *.aar
+*.zip
 local.properties
 app/build/
 app/release/
